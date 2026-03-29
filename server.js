@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ⚠️ PASTE YOUR MONGODB LINK BELOW
-mongoose.connect('mongodb+srv://babarhere:<db_password>@cluster0.ecudqzb.mongodb.net/?appName=Cluster0', {
+mongoose.connect('mongodb+srv://babarhere:Sujjat@211@cluster0.ecudqzb.mongodb.net/?appName=Cluster0', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => console.log("MongoDB Connected")).catch(err => console.log(err));
