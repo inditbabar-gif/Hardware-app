@@ -2,118 +2,75 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi">
-    <title>Gulzar Hardware Store</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gulzar Hardware</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #FF7B00; --bg: #f5f6FA; --surface: #ffffff; --text: #2d3436; --muted: #636e72; --border: #dfe6e9; }
+        :root { --primary: #FF7B00; --bg: #f5f6FA; --surface: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
-        .app-header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10; }
-        .app-header h1 { font-size: 1.1rem; }
-        
+        .app-header { background: var(--primary); color: white; padding: 15px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .app-main { flex: 1; overflow-y: auto; padding-bottom: 80px; }
-        .tab-content { display: none; padding: 15px; animation: fadeIn 0.3s; }
+        .tab-content { display: none; padding: 15px; }
         .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* PRODUCT CARDS - FIXED FOR SKETCHWARE CLIPPING */
-        .grid-layout { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .card { background: var(--surface); border-radius: 12px; padding: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; height: 260px; overflow: visible; }
-        .card img { width: 100%; height: 110px; object-fit: contain; border-radius: 8px; margin-bottom: 10px; background: #fafafa; }
+        /* PRICE CLIPPING FIX FOR SKETCHWARE */
+        .grid-layout { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .card { background: var(--surface); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; height: 260px; }
+        .card img { width: 100%; height: 110px; object-fit: contain; margin-bottom: 10px; }
         
-        .card-title { font-size: 0.85rem; font-weight: 500; height: 34px; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 8px; padding: 0 2px; }
+        .card-title { font-size: 0.85rem; height: 34px; overflow: hidden; margin-bottom: 8px; }
         
         .card-price { 
             color: var(--primary); 
             font-weight: 700; 
-            font-size: 1.1rem; 
-            margin-top: auto; 
-            margin-bottom: 10px; 
-            text-indent: 12px !important; /* Fix for Sketchware clipping */
+            font-size: 1.2rem; 
+            margin-top: auto;
+            margin-bottom: 10px;
+            /* THE NUCLEAR FIX: Massive padding and margin to force display */
+            padding-left: 25px !important; 
             display: block;
-            width: 110% !important; 
-            text-align: left;
+            width: 130% !important; 
         }
         
-        .btn-primary { background: var(--primary); color: white; border: none; border-radius: 6px; padding: 10px; width: 100%; font-weight: 700; font-size: 0.85rem; border-bottom: 3px solid #e66e00; cursor:pointer; }
+        .btn-primary { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 12px; width: 100%; font-weight: 700; text-align: center; text-decoration: none; display: inline-block; }
 
-        /* BILL OVERLAY */
-        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:100; display:none; flex-direction:column; padding:20px; overflow-y:auto; }
-        .overlay.show { display: flex; }
-        .btn-close { font-size: 1.5rem; margin-bottom: 20px; color: var(--text); }
-
-        /* BOTTOM NAV */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid var(--border); box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--muted); font-size: 0.7rem; width: 33%; }
-        .nav-item i { font-size: 1.3rem; margin-bottom: 3px; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #eee; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #636e72; font-size: 0.7rem; }
         .nav-item.active { color: var(--primary); }
 
-        .order-card { background: var(--surface); padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 6px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .status-badge { padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
-        .status-Pending { background: #ffeaa7; color: #d63031; }
-        .status-Approved { background: #FF7B00; color: #fff; }
-        .status-Paid { background: #55efc4; color: #00b894; }
-
-        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 10px 25px; border-radius: 30px; font-size: 0.85rem; display: none; z-index: 200; width: 80%; text-align: center; }
-
-        /* PRINT STYLE */
-        @media print {
-            body * { visibility: hidden; }
-            #bill-content, #bill-content * { visibility: visible; }
-            #bill-content { position: absolute; left: 0; top: 0; width: 100%; }
-        }
+        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:100; display:none; flex-direction:column; padding:20px; overflow-y:auto; }
+        .overlay.show { display: flex; }
     </style>
 </head>
 <body>
 
-    <header class="app-header">
-        <h1>Gulzar Hardware</h1>
-        <i class="fa-solid fa-user-check"></i>
-    </header>
+    <header class="app-header"><h1>Gulzar Hardware</h1></header>
 
     <main class="app-main">
-        <!-- Home -->
-        <section id="tab-home" class="tab-content active">
-            <div id="products-grid" class="grid-layout"></div>
-        </section>
-
-        <!-- Cart -->
+        <section id="tab-home" class="tab-content active"><div id="products-grid" class="grid-layout"></div></section>
         <section id="tab-cart" class="tab-content">
-            <h2 style="margin-bottom:15px;">My Cart</h2>
             <div id="cart-list"></div>
             <div id="cart-footer" style="display:none; margin-top:20px; background:white; padding:15px; border-radius:12px;">
-                <div style="display:flex; justify-content:space-between; font-size:1.2rem; font-weight:700; margin-bottom:15px;">
-                    <span>Total:</span><span id="total-price" style="color:var(--primary);">₹0</span>
-                </div>
-                <input type="text" id="cust-name" placeholder="Enter Your Name" style="width:100%; padding:15px; border:1px solid var(--border); border-radius:8px; margin-bottom:12px;">
-                <button class="btn-primary" style="padding:15px;" onclick="placeOrder()">PLACE ORDER</button>
-            </div>
-            <div id="cart-empty" style="text-align:center; margin-top:80px; color:var(--muted); display:none;">
-                <i class="fa-solid fa-basket-shopping" style="font-size:4rem; opacity:0.1;"></i><p>Cart is empty</p>
+                <h3 id="total-price" style="margin-bottom:15px;">Total: ₹0</h3>
+                <input type="text" id="cust-name" placeholder="Your Name" style="width:100%; padding:15px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc;">
+                <button class="btn-primary" onclick="placeOrder()">PLACE ORDER</button>
             </div>
         </section>
-
-        <!-- Orders -->
         <section id="tab-orders" class="tab-content">
-            <div id="order-auth" style="background:white; padding:20px; border-radius:15px;">
-                <p style="margin-bottom:15px;">Enter your name to see orders:</p>
-                <input type="text" id="view-name" placeholder="Your Name" style="width:100%; padding:15px; border:1px solid var(--border); border-radius:8px; margin-bottom:15px;">
-                <button class="btn-primary" onclick="loadOrders()">VIEW HISTORY</button>
+            <div id="order-auth">
+                <input type="text" id="view-name" placeholder="Name" style="width:100%; padding:15px; border-radius:8px; border:1px solid #ccc; margin-bottom:10px;">
+                <button class="btn-primary" onclick="loadOrders()">VIEW ORDERS</button>
             </div>
-            <div id="orders-display" style="display:none;">
-                <h2 style="margin-bottom:15px;">History</h2>
-                <div id="order-list"></div>
-            </div>
+            <div id="orders-display" style="display:none;"><div id="order-list"></div></div>
         </section>
     </main>
 
-    <!-- Bill Modal -->
     <div id="bill-overlay" class="overlay">
-        <i class="fa-solid fa-arrow-left btn-close" onclick="document.getElementById('bill-overlay').classList.remove('show')"></i>
-        <div id="bill-content" style="background:#fff; padding:25px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.1);"></div>
+        <button onclick="document.getElementById('bill-overlay').classList.remove('show')" style="padding:10px; margin-bottom:20px;">BACK</button>
+        <div id="bill-content" style="background:#fff; padding:20px; border-radius:15px;"></div>
     </div>
 
     <nav class="bottom-nav">
@@ -122,22 +79,11 @@
         <div class="nav-item" data-target="tab-orders"><i class="fa-solid fa-receipt"></i><span>Orders</span></div>
     </nav>
 
-    <div id="toast" class="toast"></div>
-
     <script>
         const API = '/api';
         let cart = JSON.parse(localStorage.getItem('gulzar_cart') || '[]');
-        let customerName = localStorage.getItem('gulzar_name') || '';
 
-        window.onload = () => {
-            fetchProducts();
-            setupNav();
-            if(customerName) {
-                document.getElementById('view-name').value = customerName;
-                document.getElementById('cust-name').value = customerName;
-                loadOrders();
-            }
-        };
+        window.onload = () => { fetchProducts(); setupNav(); };
 
         function setupNav() {
             document.querySelectorAll('.nav-item').forEach(item => {
@@ -155,13 +101,12 @@
         async function fetchProducts() {
             const res = await fetch(`${API}/products`);
             const data = await res.json();
-            const grid = document.getElementById('products-grid');
-            grid.innerHTML = data.map(p => `
+            document.getElementById('products-grid').innerHTML = data.map(p => `
                 <div class="card">
-                    <img src="${p.image}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1162/1162456.png'">
+                    <img src="${p.image}">
                     <div class="card-title">${p.name}</div>
                     <div class="card-price">₹ ${p.price}</div>
-                    <button class="btn-primary" onclick="event.stopPropagation(); addToCart('${p._id}', '${p.name}', ${p.price})">Add to Cart</button>
+                    <button class="btn-primary" onclick="addToCart('${p._id}', '${p.name}', ${p.price})">Add</button>
                 </div>
             `).join('');
         }
@@ -170,111 +115,64 @@
             const ex = cart.find(i => i.productId === id);
             if(ex) ex.quantity++; else cart.push({ productId: id, name, price, quantity: 1 });
             localStorage.setItem('gulzar_cart', JSON.stringify(cart));
-            showToast("Added to cart!");
+            alert("Added!");
         }
 
         function renderCart() {
             const list = document.getElementById('cart-list');
-            if(cart.length === 0) {
-                list.innerHTML = '';
-                document.getElementById('cart-footer').style.display = 'none';
-                document.getElementById('cart-empty').style.display = 'block';
-                return;
-            }
-            document.getElementById('cart-empty').style.display = 'none';
+            if(cart.length === 0) { list.innerHTML = 'Cart Empty'; return; }
             document.getElementById('cart-footer').style.display = 'block';
             let total = 0;
             list.innerHTML = cart.map(i => {
                 total += (i.price * i.quantity);
-                return `<div class="cart-item">
-                    <div><b>${i.name}</b><br>₹${i.price} x ${i.quantity}</div>
-                    <button onclick="removeItem('${i.productId}')" style="background:#fff2f2; border:none; color:red; padding:8px; border-radius:5px;"><i class="fa-solid fa-trash"></i></button>
-                </div>`;
+                return `<div style="background:#fff; padding:10px; margin-bottom:5px; border-radius:8px;">${i.name} - ₹${i.price} x ${i.quantity}</div>`;
             }).join('');
-            document.getElementById('total-price').innerText = '₹' + total;
-        }
-
-        function removeItem(id) {
-            cart = cart.filter(i => i.productId !== id);
-            localStorage.setItem('gulzar_cart', JSON.stringify(cart));
-            renderCart();
+            document.getElementById('total-price').innerText = 'Total: ₹' + total;
         }
 
         async function placeOrder() {
-            const name = document.getElementById('cust-name').value.trim();
-            if(!name) return showToast("Enter your name");
+            const name = document.getElementById('cust-name').value;
             const total = cart.reduce((a,b)=>a+(b.price*b.quantity), 0);
-            const res = await fetch(`${API}/orders`, {
+            await fetch(`${API}/orders`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ customerName: name, items: cart, totalAmount: total })
             });
-            if(res.ok) {
-                cart = []; localStorage.setItem('gulzar_cart', '[]');
-                localStorage.setItem('gulzar_name', name);
-                showToast("Order Success!");
-                location.reload();
-            }
+            cart = []; localStorage.setItem('gulzar_cart', '[]');
+            location.reload();
         }
 
         async function loadOrders() {
-            const name = document.getElementById('view-name').value.trim();
-            if(!name) return;
+            const name = document.getElementById('view-name').value;
             const res = await fetch(`${API}/orders/${name}`);
             const data = await res.json();
             document.getElementById('order-auth').style.display = 'none';
             document.getElementById('orders-display').style.display = 'block';
-            const list = document.getElementById('order-list');
-            list.innerHTML = data.reverse().map(o => `
-                <div class="order-card">
-                    <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
-                        <span style="font-size:0.75rem;color:gray;">${new Date(o.createdAt).toLocaleDateString()}</span>
-                        <span class="status-badge status-${o.status}">${o.status}</span>
-                    </div>
-                    <div style="font-weight:700;margin-bottom:10px;">Total Bill: ₹${o.totalAmount}</div>
-                    ${o.status !== 'Pending' ? `<button class="btn-primary" onclick="viewBill('${o._id}')">VIEW BILL / SAVE PDF</button>` : `<small style="color:orange; font-weight:bold;">Wait for Admin Approval</small>`}
+            document.getElementById('order-list').innerHTML = data.reverse().map(o => `
+                <div style="background:#fff; padding:15px; margin-bottom:10px; border-radius:12px;">
+                    <b>Status: ${o.status}</b><br>Amount: ₹${o.totalAmount}<br>
+                    ${o.status !== 'Pending' ? `<button class="btn-primary" style="margin-top:10px;" onclick="viewBill('${o._id}')">VIEW BILL</button>` : 'Awaiting Approval'}
                 </div>
             `).join('');
         }
 
-        // 👉 THE FIXED BILL FUNCTION IS HERE:
         async function viewBill(id) {
-            try {
-                const res = await fetch(`${API}/invoice/${id}`);
-                const data = await res.json();
-                if(!res.ok) throw new Error(data.error);
+            const res = await fetch(`${API}/invoice/${id}`);
+            const data = await res.json();
+            const billUrl = window.location.origin + '/api/invoice/' + id;
 
-                document.getElementById('bill-content').innerHTML = `
-                    <div style="text-align:center; border-bottom:2px solid #eee; padding-bottom:15px; margin-bottom:15px;">
-                        <h2 style="color:var(--primary);">${data.storeName}</h2>
-                        <p style="font-size:0.7rem; color:gray;">Order: ${data.orderId}</p>
-                    </div>
-                    <div style="margin-bottom:20px;">
-                        <b>Customer:</b> ${data.customerName}<br>
-                        <b>Date:</b> ${new Date(data.date).toLocaleDateString()}
-                    </div>
-                    ${data.items.map(i => `<div style="display:flex;justify-content:space-between;font-size:0.9rem;margin-bottom:5px;">
-                        <span>${i.name} x${i.quantity}</span><span>₹${i.price*i.quantity}</span>
-                    </div>`).join('')}
-                    <div style="margin-top:15px; border-top:2px solid var(--primary); padding-top:10px; display:flex; justify-content:space-between; font-weight:700;">
-                        <span>GRAND TOTAL:</span><span>₹${data.totalAmount}</span>
-                    </div>
-                    
-                    <div style="display:flex; gap:10px; margin-top:25px;">
-                        <button class="btn-primary" style="flex:1;" onclick="window.print()">PRINT</button>
-                        <button class="btn-primary" style="flex:1; background:#2d3436;" 
-                           onclick="window.open(location.origin + '/admin.html', '_blank')">BROWSER</button>
-                    </div>
-                    <p style="font-size:0.65rem; color:gray; text-align:center; margin-top:10px;">If PRINT fails, tap BROWSER to save PDF</p>
-                `;
-                document.getElementById('bill-overlay').classList.add('show');
-            } catch(e) { showToast(e.message); }
-        }
-
-        function showToast(m) {
-            const t = document.getElementById('toast');
-            t.innerText = m; t.style.display = 'block';
-            setTimeout(()=>t.style.display='none', 2500);
+            document.getElementById('bill-content').innerHTML = `
+                <h2 style="text-align:center;">${data.storeName}</h2>
+                <hr style="margin:15px 0;">
+                <p><b>Customer:</b> ${data.customerName}</p>
+                <p><b>Total:</b> ₹${data.totalAmount}</p>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <!-- DIRECT LINK FOR SKETCHWARE -->
+                    <a href="${billUrl}" target="_blank" class="btn-primary" style="background:#333;">DOWNLOAD BILL</a>
+                </div>
+                <p style="font-size:0.7rem; color:gray; text-align:center; margin-top:10px;">Clicking Download will open Chrome to save PDF.</p>
+            `;
+            document.getElementById('bill-overlay').classList.add('show');
         }
     </script>
 </body>
