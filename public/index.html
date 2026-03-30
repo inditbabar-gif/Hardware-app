@@ -17,13 +17,12 @@
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* PRODUCT CARDS - FIXED FOR OVERLAP */
+        /* PRODUCT CARDS */
         .grid-layout { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         .card { background: #fff; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; height: 270px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .card img { width: 100%; height: 110px; object-fit: contain; margin-bottom: 10px; background: #fafafa; }
         .card-title { font-size: 0.9rem; font-weight: 500; height: 38px; overflow: hidden; margin-bottom: 5px; }
         
-        /* THE FIX FOR RUPEE OVERLAP */
         .card-price { 
             color: var(--primary); 
             font-weight: 700; 
@@ -33,9 +32,14 @@
             display: flex; 
             align-items: center;
         }
-        .rs-symbol { margin-right: 8px; font-weight: 400; color: #555; } /* Forced gap */
+        .rs-symbol { margin-right: 8px; font-weight: 400; color: #555; } 
 
         .btn-primary { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 12px; width: 100%; font-weight: 700; cursor: pointer; }
+
+        /* CART CONTROLS */
+        .cart-item { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .qty-btns { display: flex; align-items: center; gap: 12px; }
+        .q-btn { background: #f1f2f6; border: none; width: 30px; height: 30px; border-radius: 5px; font-weight: bold; font-size: 1.2rem; }
 
         /* BOTTOM NAV */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #fff; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; z-index: 1000; }
@@ -44,15 +48,10 @@
         .nav-item span { font-size: 0.7rem; font-weight: 500; }
         .nav-item.active { color: var(--primary); }
 
-        /* ORDERS LIST */
-        .order-card { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; float: right; }
-        .status-Pending { background: #ffeaa7; color: #d63031; }
-        .status-Approved { background: var(--primary); color: #fff; }
-        .status-Paid { background: #55efc4; color: #00b894; }
-
+        /* OVERLAYS */
         .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:2000; display:none; flex-direction:column; padding:20px; overflow-y:auto; }
         .overlay.show { display: flex; }
+        .order-card { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -66,33 +65,32 @@
             <h2 style="margin-bottom:15px;">Your Cart</h2>
             <div id="cart-list"></div>
             <div id="cart-footer" style="display:none; margin-top:20px;">
-                <h3 id="total-price" style="margin-bottom:15px;">Total Bill: ₹0</h3>
+                <h3 id="total-price" style="margin-bottom:15px; font-size:1.3rem;">Total: ₹0</h3>
                 <input type="text" id="cust-name" placeholder="Enter Your Name" style="width:100%; padding:15px; border-radius:8px; border:1px solid #ccc; font-size: 1rem; margin-bottom:10px;">
                 <button class="btn-primary" onclick="placeOrder()">PLACE ORDER</button>
             </div>
-            <div id="cart-empty" style="text-align:center; margin-top:50px; opacity:0.3;">Your Cart is Empty</div>
+            <div id="cart-empty" style="text-align:center; margin-top:50px; opacity:0.3;">Cart is Empty</div>
         </section>
 
         <section id="tab-orders" class="tab-content">
-            <!-- Search only shows if no name saved -->
             <div id="order-login-box" style="background:white; padding:20px; border-radius:12px;">
-                <p style="margin-bottom:10px;">Please enter your name to see orders:</p>
-                <input type="text" id="view-name" placeholder="Full Name" style="width:100%; padding:15px; border-radius:8px; border:1px solid #ccc; margin-bottom:10px; font-size:1rem;">
-                <button class="btn-primary" onclick="manualSearch()">SEARCH MY ORDERS</button>
+                <p style="margin-bottom:10px;">Enter name to see history:</p>
+                <input type="text" id="view-name" placeholder="Name" style="width:100%; padding:15px; border-radius:8px; border:1px solid #ccc; margin-bottom:10px;">
+                <button class="btn-primary" onclick="manualSearch()">SEARCH</button>
             </div>
-            
-            <div id="orders-display" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h2 id="order-title">My Orders</h2>
-                    <button onclick="changeUser()" style="background:none; border:none; color:var(--primary); font-size:0.8rem; font-weight:bold;">Switch User</button>
-                </div>
-                <div id="order-list"></div>
-            </div>
+            <div id="orders-display" style="display:none;"><div id="order-list"></div></div>
         </section>
     </main>
 
+    <!-- PRODUCT DETAILS MODAL -->
+    <div id="detail-overlay" class="overlay">
+        <button onclick="document.getElementById('detail-overlay').classList.remove('show')" style="padding:10px; background:#333; color:white; border:none; border-radius:8px; margin-bottom:15px; width:80px;">BACK</button>
+        <div id="detail-content" style="background:#fff; padding:20px; border-radius:15px; text-align:center;"></div>
+    </div>
+
+    <!-- BILL MODAL -->
     <div id="bill-overlay" class="overlay">
-        <button onclick="document.getElementById('bill-overlay').classList.remove('show')" style="padding:12px; background:#333; color:white; border:none; border-radius:8px; margin-bottom:20px;">CLOSE BILL</button>
+        <button onclick="document.getElementById('bill-overlay').classList.remove('show')" style="padding:10px; background:#333; color:white; border:none; border-radius:8px; margin-bottom:15px; width:80px;">CLOSE</button>
         <div id="bill-content"></div>
     </div>
 
@@ -106,11 +104,11 @@
         const API = '/api';
         let cart = JSON.parse(localStorage.getItem('gulzar_cart') || '[]');
         let savedUser = localStorage.getItem('gulzar_name') || '';
+        let allProducts = [];
 
         window.onload = () => {
             fetchProducts();
             setupNav();
-            // If user already exists, fill inputs
             if(savedUser) {
                 document.getElementById('cust-name').value = savedUser;
                 document.getElementById('view-name').value = savedUser;
@@ -125,37 +123,51 @@
                     const target = item.getAttribute('data-target');
                     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
                     document.getElementById(target).classList.add('active');
-                    
                     if(target === 'tab-cart') renderCart();
-                    // AUTO-LOAD ORDERS WHEN TAB CLICKED
-                    if(target === 'tab-orders' && savedUser) {
-                        loadOrders(savedUser);
-                    }
+                    if(target === 'tab-orders' && savedUser) loadOrders(savedUser);
                 });
             });
         }
 
         async function fetchProducts() {
             const res = await fetch(`${API}/products`);
-            const data = await res.json();
-            document.getElementById('products-grid').innerHTML = data.map(p => `
-                <div class="card">
+            allProducts = await res.json();
+            document.getElementById('products-grid').innerHTML = allProducts.map(p => `
+                <div class="card" onclick="showDetails('${p._id}')">
                     <img src="${p.image}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1162/1162456.png'">
                     <div class="card-title">${p.name}</div>
-                    <div class="card-price">
-                        <span class="rs-symbol">₹</span>
-                        <span>${p.price}</span>
-                    </div>
-                    <button class="btn-primary" onclick="addToCart('${p._id}', '${p.name}', ${p.price})">ADD</button>
+                    <div class="card-price"><span class="rs-symbol">₹</span><span>${p.price}</span></div>
+                    <button class="btn-primary" onclick="event.stopPropagation(); addToCart('${p._id}', '${p.name}', ${p.price})">ADD</button>
                 </div>
             `).join('');
+        }
+
+        function showDetails(id) {
+            const p = allProducts.find(x => x._id === id);
+            document.getElementById('detail-content').innerHTML = `
+                <img src="${p.image}" style="width:100%; height:200px; object-fit:contain; margin-bottom:15px;">
+                <h2>${p.name}</h2>
+                <h3 style="color:var(--primary); margin:10px 0;">₹${p.price}</h3>
+                <p style="color:#666; text-align:left; line-height:1.5; margin-bottom:20px;">${p.description || 'No description available.'}</p>
+                <button class="btn-primary" onclick="addToCart('${p._id}', '${p.name}', ${p.price}); document.getElementById('detail-overlay').classList.remove('show')">ADD TO CART</button>
+            `;
+            document.getElementById('detail-overlay').classList.add('show');
         }
 
         function addToCart(id, name, price) {
             const ex = cart.find(i => i.productId === id);
             if(ex) ex.quantity++; else cart.push({ productId: id, name, price, quantity: 1 });
             localStorage.setItem('gulzar_cart', JSON.stringify(cart));
-            alert("Added to cart!");
+            alert("Added!");
+        }
+
+        function updateQty(id, delta) {
+            const item = cart.find(i => i.productId === id);
+            if(!item) return;
+            item.quantity += delta;
+            if(item.quantity <= 0) cart = cart.filter(i => i.productId !== id);
+            localStorage.setItem('gulzar_cart', JSON.stringify(cart));
+            renderCart();
         }
 
         function renderCart() {
@@ -171,8 +183,13 @@
             let total = 0;
             list.innerHTML = cart.map(i => {
                 total += (i.price * i.quantity);
-                return `<div style="background:#fff; padding:15px; margin-bottom:10px; border-radius:10px; border:1px solid #eee;">
-                    <b>${i.name}</b><br><span style="color:var(--primary);">₹${i.price} x ${i.quantity}</span>
+                return `<div class="cart-item">
+                    <div><b>${i.name}</b><br>₹${i.price}</div>
+                    <div class="qty-btns">
+                        <button class="q-btn" onclick="updateQty('${i.productId}', -1)">-</button>
+                        <span>${i.quantity}</span>
+                        <button class="q-btn" onclick="updateQty('${i.productId}', 1)">+</button>
+                    </div>
                 </div>`;
             }).join('');
             document.getElementById('total-price').innerText = 'Total Bill: ₹' + total;
@@ -180,14 +197,14 @@
 
         async function placeOrder() {
             const name = document.getElementById('cust-name').value;
-            if(!name) return alert("Enter Your Name");
+            if(!name) return alert("Enter Name");
             await fetch(`${API}/orders`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ customerName: name, items: cart, totalAmount: cart.reduce((a,b)=>a+(b.price*b.quantity), 0) })
             });
             cart = []; localStorage.setItem('gulzar_cart', '[]');
-            localStorage.setItem('gulzar_name', name); // SAVE USER
+            localStorage.setItem('gulzar_name', name);
             location.reload();
         }
 
@@ -199,55 +216,24 @@
             loadOrders(name);
         }
 
-        function changeUser() {
-            localStorage.removeItem('gulzar_name');
-            savedUser = '';
-            document.getElementById('order-login-box').style.display = 'block';
-            document.getElementById('orders-display').style.display = 'none';
-        }
-
         async function loadOrders(name) {
             const res = await fetch(`${API}/orders/${name}`);
             const data = await res.json();
             document.getElementById('order-login-box').style.display = 'none';
             document.getElementById('orders-display').style.display = 'block';
-            const list = document.getElementById('order-list');
-            
-            if(data.length === 0) {
-                list.innerHTML = '<p style="text-align:center; padding:20px; color:gray;">No orders found for this name.</p>';
-                return;
-            }
-
-            list.innerHTML = data.reverse().map(o => `
+            document.getElementById('order-list').innerHTML = data.reverse().map(o => `
                 <div class="order-card">
-                    <span class="status-badge status-${o.status}">${o.status}</span>
-                    <b style="font-size:1.1rem;">₹${o.totalAmount}</b><br>
-                    <small style="color:gray;">${new Date(o.createdAt).toLocaleDateString()}</small><br>
-                    ${o.status !== 'Pending' ? 
-                        `<div style="display:flex;gap:5px;margin-top:10px;">
-                            <button class="btn-primary" style="flex:1" onclick="loadLocalBill('${o._id}')">PRINT</button>
-                            <a href="/api/invoice/${o._id}" target="_blank" class="btn-primary" style="flex:1;text-decoration:none;text-align:center;background:#333;font-size:0.8rem;">BROWSER</a>
-                        </div>` 
-                        : '<p style="color:orange; margin-top:5px; font-weight:bold; font-size:0.8rem;">Awaiting Store Approval</p>'}
+                    <b>Bill: ₹${o.totalAmount}</b><br>
+                    <small>Status: ${o.status}</small><br>
+                    ${o.status !== 'Pending' ? `<button class="btn-primary" style="margin-top:10px;" onclick="viewBill('${o._id}')">OPEN BILL</button>` : '<p style="color:orange; margin-top:5px;">Waiting for store...</p>'}
                 </div>
             `).join('');
         }
 
-        async function loadLocalBill(id) {
-            const res = await fetch(`${API}/invoice/${id}`);
-            const data = await res.json();
-            document.getElementById('bill-content').innerHTML = `
-                <div style="border:1px solid #eee; padding:20px; border-radius:10px; background:#fff;">
-                    <h2 style="text-align:center; color:var(--primary);">${data.storeName}</h2>
-                    <p style="margin-top:10px;"><b>Bill To:</b> ${data.customerName}</p>
-                    <hr style="margin:10px 0; border:0.5px solid #eee;">
-                    ${data.items.map(i => `<p style="display:flex;justify-content:space-between;margin-bottom:5px;"><span>${i.name} x${i.quantity}</span><span>₹${i.price*i.quantity}</span></p>`).join('')}
-                    <h3 style="margin-top:15px; border-top:2px solid #eee; padding-top:10px; display:flex; justify-content:space-between;"><span>Total:</span><span>₹${data.totalAmount}</span></h3>
-                    <p style="text-align:center; margin-top:20px; font-weight:bold; color:green;">${data.status}</p>
-                    <button class="btn-primary" onclick="window.print()" style="margin-top:15px;">SAVE AS PDF</button>
-                </div>
-            `;
-            document.getElementById('bill-overlay').classList.add('show');
+        async function viewBill(id) {
+            const billUrl = window.location.origin + '/api/invoice/' + id;
+            // The direct URL is best for Sketchware
+            window.location.href = billUrl; 
         }
     </script>
 </body>
