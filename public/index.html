@@ -11,54 +11,48 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Roboto', sans-serif; background: var(--bg); color: #2d3436; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .app-header { background: var(--primary); color: white; padding: 15px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 10; }
-        .app-main { flex: 1; overflow-y: auto; padding-bottom: 80px; }
-        .tab-content { display: none; padding: 15px; animation: fadeIn 0.3s; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* HEADER */
+        .app-header { background: var(--primary); color: white; padding: 15px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 100; }
+        
+        .app-main { flex: 1; overflow-y: auto; padding-bottom: 80px; position: relative; }
+        .tab-content { display: none; padding: 15px; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* PRO BANNER SECTION */
-        .hero-banner { width: 100%; height: 160px; border-radius: 15px; overflow: hidden; position: relative; margin-bottom: 20px; background: #eee; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        /* BANNER */
+        .hero-banner { width: 100%; height: 150px; border-radius: 12px; overflow: hidden; position: relative; margin-bottom: 15px; background: #ddd; display: none; }
         .hero-banner img { width: 100%; height: 100%; object-fit: cover; }
-        .hero-text { position: absolute; bottom: 0; left: 0; width: 100%; padding: 10px; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white; font-size: 0.9rem; font-weight: bold; }
+        .hero-text { position: absolute; bottom: 0; width: 100%; padding: 8px; background: rgba(0,0,0,0.6); color: white; font-size: 0.8rem; }
 
-        /* SEARCH BAR */
-        .search-box { background: white; padding: 10px; margin-bottom: 15px; border-radius: 10px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .search-box i { color: #ccc; margin-right: 10px; }
-        .search-box input { border: none; outline: none; width: 100%; font-size: 0.9rem; }
-
-        /* CATEGORY SCROLLER */
-        .category-bar { display: flex; overflow-x: auto; gap: 10px; margin-bottom: 20px; padding-bottom: 5px; scrollbar-width: none; }
-        .category-bar::-webkit-scrollbar { display: none; }
-        .cat-item { background: white; padding: 8px 18px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; white-space: nowrap; border: 1px solid #eee; }
+        /* SEARCH & CATEGORY */
+        .search-box { background: white; padding: 10px; margin-bottom: 15px; border-radius: 10px; display: flex; align-items: center; border: 1px solid #eee; }
+        .search-box input { border: none; outline: none; width: 100%; margin-left: 10px; font-size: 0.9rem; }
+        .category-bar { display: flex; overflow-x: auto; gap: 8px; margin-bottom: 15px; padding-bottom: 5px; }
+        .cat-item { background: white; padding: 7px 15px; border-radius: 20px; font-size: 0.8rem; white-space: nowrap; border: 1px solid #eee; }
         .cat-item.active { background: var(--primary); color: white; border-color: var(--primary); }
 
         /* PRODUCT CARDS */
-        .grid-layout { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .card { background: #fff; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; height: 270px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .card img { width: 100%; height: 110px; object-fit: contain; margin-bottom: 10px; background: #fafafa; }
-        .card-title { font-size: 0.9rem; font-weight: 500; height: 38px; overflow: hidden; margin-bottom: 5px; }
+        .grid-layout { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .card { background: #fff; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; height: 260px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card img { width: 100%; height: 100px; object-fit: contain; margin-bottom: 8px; }
+        .card-title { font-size: 0.85rem; font-weight: 500; height: 34px; overflow: hidden; margin-bottom: 5px; }
         
-        /* THE RUPEE FIX */
-        .price-row { color: var(--primary); font-weight: 700; font-size: 1.15rem; margin-top: auto; margin-bottom: 10px; display: flex; align-items: center; }
-        .rs-symbol { margin-right: 10px; font-weight: 400; color: #777; } 
+        /* RUPEE FIX */
+        .price-row { color: var(--primary); font-weight: 700; font-size: 1.1rem; margin-top: auto; margin-bottom: 8px; display: flex; align-items: center; }
+        .rs-symbol { margin-right: 8px; font-weight: 400; color: #777; } 
 
-        .btn-primary { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 12px; width: 100%; font-weight: 700; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: white; border: none; border-radius: 6px; padding: 10px; width: 100%; font-weight: 700; cursor: pointer; }
 
-        /* BOTTOM NAV */
+        /* BOTTOM NAV - STABLE VERSION */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #fff; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; z-index: 1000; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #747d8c; text-decoration: none; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #747d8c; cursor: pointer; }
         .nav-item i { font-size: 1.4rem; margin-bottom: 3px; }
-        .nav-item span { font-size: 0.7rem; font-weight: 500; }
+        .nav-item span { font-size: 0.7rem; }
         .nav-item.active { color: var(--primary); }
 
         .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:2000; display:none; flex-direction:column; padding:20px; overflow-y:auto; }
         .overlay.show { display: flex; }
-        .order-card { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; float: right; text-transform: uppercase; }
-        .status-Pending { background: #ffeaa7; color: #d63031; }
-        .status-Approved { background: var(--primary); color: #fff; }
-        .status-Paid { background: #55efc4; color: #00b894; }
+        .order-card { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid var(--primary); }
     </style>
 </head>
 <body>
@@ -66,66 +60,46 @@
     <header class="app-header"><h1>Gulzar Hardware Store</h1></header>
 
     <main class="app-main">
+        <!-- Home -->
         <section id="tab-home" class="tab-content active">
-            <!-- New Pro Banner -->
-            <div class="hero-banner" id="user-banner-box">
-                <img id="user-banner-img" src="" onerror="this.src='https://via.placeholder.com/400x150?text=Hardware+Store'">
-                <div class="hero-text" id="user-banner-text">Loading daily offers...</div>
-            </div>
-
-            <div class="search-box">
-                <i class="fa-solid fa-search"></i>
-                <input type="text" id="search-input" placeholder="Search products..." oninput="searchProducts()">
-            </div>
-            
-            <div class="category-bar" id="category-scroller">
-                <div class="cat-item active" onclick="filterByCategory('All', this)">All</div>
-            </div>
-
+            <div class="hero-banner" id="banner-box"><img id="banner-img" src=""><div class="hero-text" id="banner-txt"></div></div>
+            <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" id="search-input" placeholder="Search..." oninput="searchProducts()"></div>
+            <div class="category-bar" id="cat-bar"><div class="cat-item active" onclick="filterByCat('All', this)">All</div></div>
             <div id="products-grid" class="grid-layout"></div>
         </section>
         
+        <!-- Cart -->
         <section id="tab-cart" class="tab-content">
-            <h2 style="margin-bottom:15px;">Your Cart</h2>
+            <h2 style="margin-bottom:15px;">Cart</h2>
             <div id="cart-list"></div>
-            <div id="cart-footer" style="display:none; margin-top:20px; background:white; padding:15px; border-radius:12px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                    <span style="font-weight:bold;">Total Amount:</span>
-                    <span class="price-row" style="margin:0;"><span class="rs-symbol">₹</span><span id="total-price">0</span></span>
-                </div>
-                <input type="text" id="cust-name" placeholder="Full Name" style="width:100%; padding:15px; border-radius:8px; border:1px solid #ccc; font-size: 1rem; margin-bottom:10px;">
-                <button class="btn-primary" onclick="placeOrder()">PLACE ORDER</button>
+            <div id="cart-footer" style="display:none; margin-top:15px; background:white; padding:15px; border-radius:10px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><b>Total:</b> <span class="price-row" style="margin:0;"><span class="rs-symbol">₹</span><span id="total-price">0</span></span></div>
+                <input type="text" id="cust-name" placeholder="Your Name" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; margin-bottom:10px;">
+                <button class="btn-primary" onclick="placeOrder()">ORDER NOW</button>
             </div>
-            <div id="cart-empty" style="text-align:center; margin-top:50px; opacity:0.3;">Your Cart is Empty</div>
+            <div id="cart-empty" style="text-align:center; margin-top:50px; opacity:0.3;">Empty</div>
         </section>
 
+        <!-- Orders -->
         <section id="tab-orders" class="tab-content">
-            <div id="order-login-box" style="background:white; padding:20px; border-radius:12px;">
-                <p style="margin-bottom:10px;">Enter your name to see orders:</p>
-                <input type="text" id="view-name" placeholder="Full Name" style="width:100%; padding:15px; border-radius:8px; border:1px solid #ccc; margin-bottom:10px; font-size:1rem;">
-                <button class="btn-primary" onclick="manualSearch()">SEARCH MY ORDERS</button>
+            <div id="order-login" style="background:white; padding:20px; border-radius:10px;">
+                <input type="text" id="view-name" placeholder="Enter Name" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; margin-bottom:10px;">
+                <button class="btn-primary" onclick="manualSearch()">VIEW HISTORY</button>
             </div>
-            
             <div id="orders-display" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h2 id="order-title">My Orders</h2>
-                    <button onclick="changeUser()" style="background:#f1f2f6; border:none; color:#d63031; padding:8px 12px; border-radius:8px; font-size:0.75rem; font-weight:bold;">LOGOUT</button>
-                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px;"><h2>Orders</h2><button onclick="logoutUser()" style="color:red; border:none; background:none; font-size:0.7rem;">LOGOUT</button></div>
                 <div id="order-list"></div>
             </div>
         </section>
     </main>
 
+    <!-- Overlays -->
     <div id="detail-overlay" class="overlay">
-        <button onclick="document.getElementById('detail-overlay').classList.remove('show')" style="padding:10px; background:#333; color:white; border:none; border-radius:8px; margin-bottom:15px;">BACK</button>
-        <div id="detail-content" style="background:#fff; padding:20px; border-radius:15px; text-align:center;"></div>
+        <button onclick="document.getElementById('detail-overlay').classList.remove('show')" style="padding:10px; margin-bottom:10px;">BACK</button>
+        <div id="detail-content" style="background:#fff; padding:20px; border-radius:12px;"></div>
     </div>
 
-    <div id="bill-overlay" class="overlay">
-        <button onclick="document.getElementById('bill-overlay').classList.remove('show')" style="padding:10px; background:#333; color:white; border:none; border-radius:8px; margin-bottom:15px;">CLOSE</button>
-        <div id="bill-content"></div>
-    </div>
-
+    <!-- Bottom Nav -->
     <nav class="bottom-nav">
         <div class="nav-item active" data-target="tab-home"><i class="fa-solid fa-house"></i><span>Home</span></div>
         <div class="nav-item" data-target="tab-cart"><i class="fa-solid fa-cart-shopping"></i><span>Cart</span></div>
@@ -138,57 +112,73 @@
         let savedUser = localStorage.getItem('gulzar_name') || '';
         let allProducts = [];
 
+        // --- 1. THE SAFETY START (TABS FIRST) ---
         window.onload = () => {
-            fetchBanner();
-            fetchProducts();
-            fetchCategories();
-            setupNav();
-            if(savedUser) {
-                document.getElementById('cust-name').value = savedUser;
-                document.getElementById('view-name').value = savedUser;
-            }
+            setupNav(); // Enable tabs instantly
+            try {
+                if(savedUser) {
+                    document.getElementById('cust-name').value = savedUser;
+                    document.getElementById('view-name').value = savedUser;
+                }
+                loadInitialData();
+            } catch(e) { console.log("Init Error"); }
         };
 
         function setupNav() {
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const items = document.querySelectorAll('.nav-item');
+            const tabs = document.querySelectorAll('.tab-content');
+            items.forEach(item => {
+                item.onclick = () => {
+                    items.forEach(n => n.classList.remove('active'));
+                    tabs.forEach(t => t.classList.remove('active'));
                     item.classList.add('active');
                     const target = item.getAttribute('data-target');
-                    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
                     document.getElementById(target).classList.add('active');
                     if(target === 'tab-cart') renderCart();
                     if(target === 'tab-orders' && savedUser) loadOrders(savedUser);
-                });
+                };
             });
+        }
+
+        async function loadInitialData() {
+            fetchBanner();
+            fetchCategories();
+            fetchProducts();
         }
 
         async function fetchBanner() {
-            const res = await fetch(`${API}/banner`);
-            const b = await res.json();
-            if(b.imageUrl) {
-                document.getElementById('user-banner-img').src = b.imageUrl;
-                document.getElementById('user-banner-text').innerText = b.text;
-            }
+            try {
+                const res = await fetch(`${API}/banner`);
+                const b = await res.json();
+                if(b.imageUrl) {
+                    document.getElementById('banner-box').style.display = 'block';
+                    document.getElementById('banner-img').src = b.imageUrl;
+                    document.getElementById('banner-txt').innerText = b.text;
+                }
+            } catch(e) {}
         }
 
         async function fetchCategories() {
-            const res = await fetch(`${API}/categories`);
-            const cats = await res.json();
-            const scroller = document.getElementById('category-scroller');
-            cats.forEach(c => {
-                const div = document.createElement('div');
-                div.className = 'cat-item';
-                div.innerText = c.name;
-                div.onclick = () => filterByCategory(c.name, div);
-                scroller.appendChild(div);
-            });
+            try {
+                const res = await fetch(`${API}/categories`);
+                const cats = await res.json();
+                const bar = document.getElementById('cat-bar');
+                cats.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'cat-item';
+                    div.innerText = c.name;
+                    div.onclick = () => filterByCat(c.name, div);
+                    bar.appendChild(div);
+                });
+            } catch(e) {}
         }
 
         async function fetchProducts() {
-            const res = await fetch(`${API}/products`);
-            allProducts = await res.json();
-            renderProducts(allProducts);
+            try {
+                const res = await fetch(`${API}/products`);
+                allProducts = await res.json();
+                renderProducts(allProducts);
+            } catch(e) {}
         }
 
         function renderProducts(list) {
@@ -204,11 +194,11 @@
         }
 
         function searchProducts() {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(query)));
+            const q = document.getElementById('search-input').value.toLowerCase();
+            renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(q)));
         }
 
-        function filterByCategory(cat, el) {
+        function filterByCat(cat, el) {
             document.querySelectorAll('.cat-item').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
             renderProducts(cat === 'All' ? allProducts : allProducts.filter(p => p.category === cat));
@@ -217,10 +207,10 @@
         function showDetails(id) {
             const p = allProducts.find(x => x._id === id);
             document.getElementById('detail-content').innerHTML = `
-                <img src="${p.image}" style="width:100%; height:200px; object-fit:contain; margin-bottom:15px;">
-                <h2>${p.name}</h2>
-                <div class="price-row" style="font-size:1.5rem; justify-content:center;"><span class="rs-symbol">₹</span><span>${p.price}</span></div>
-                <p style="text-align:left; line-height:1.5; margin:15px 0; color:#444;">${p.description || 'Quality product.'}</p>
+                <img src="${p.image}" style="width:100%; height:180px; object-fit:contain;">
+                <h2 style="margin:10px 0;">${p.name}</h2>
+                <div class="price-row" style="justify-content:center; font-size:1.4rem;"><span class="rs-symbol">₹</span><span>${p.price}</span></div>
+                <p style="text-align:left; color:gray; font-size:0.9rem; margin-bottom:15px;">${p.description || 'Quality Hardware'}</p>
                 <button class="btn-primary" onclick="addToCart('${p._id}', '${p.name}', ${p.price}); document.getElementById('detail-overlay').classList.remove('show')">ADD TO CART</button>
             `;
             document.getElementById('detail-overlay').classList.add('show');
@@ -244,20 +234,20 @@
         function renderCart() {
             const list = document.getElementById('cart-list');
             if(cart.length === 0) { 
-                list.innerHTML = ''; document.getElementById('cart-footer').style.display = 'none';
-                document.getElementById('cart-empty').style.display = 'block'; return; 
+                list.innerHTML = ''; document.getElementById('cart-footer').style.display='none';
+                document.getElementById('cart-empty').style.display='block'; return;
             }
-            document.getElementById('cart-empty').style.display = 'none';
-            document.getElementById('cart-footer').style.display = 'block';
+            document.getElementById('cart-empty').style.display='none';
+            document.getElementById('cart-footer').style.display='block';
             let total = 0;
             list.innerHTML = cart.map(i => {
                 total += (i.price * i.quantity);
-                return `<div class="cart-item" style="background:#fff; padding:15px; margin-bottom:10px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; border:1px solid #eee;">
-                    <div><b>${i.name}</b><br><div class="price-row" style="font-size:0.95rem;margin:0;"><span class="rs-symbol">₹</span><span>${i.price}</span></div></div>
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <button onclick="updateQty('${i.productId}', -1)" style="width:30px; height:30px; background:#f1f2f6; border:none; border-radius:5px; font-weight:bold;">-</button>
+                return `<div class="cart-item">
+                    <div><b>${i.name}</b><br><div class="price-row" style="font-size:0.9rem; margin:0;"><span class="rs-symbol">₹</span><span>${i.price}</span></div></div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <button onclick="updateQty('${i.productId}', -1)" style="width:25px; height:25px; background:#eee; border:none;">-</button>
                         <span>${i.quantity}</span>
-                        <button onclick="updateQty('${i.productId}', 1)" style="width:30px; height:30px; background:#f1f2f6; border:none; border-radius:5px; font-weight:bold;">+</button>
+                        <button onclick="updateQty('${i.productId}', 1)" style="width:25px; height:25px; background:#eee; border:none;">+</button>
                     </div>
                 </div>`;
             }).join('');
@@ -269,7 +259,7 @@
             if(!name) return alert("Enter Name");
             await fetch(`${API}/orders`, {
                 method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ customerName: name, items: cart, totalAmount: cart.reduce((a,b)=>a+(b.price*b.quantity), 0) })
+                body: JSON.stringify({ customerName: name, items: cart, totalAmount: cart.reduce((a,b)=>a+(b.price*b.quantity),0) })
             });
             cart = []; localStorage.setItem('gulzar_cart', '[]');
             localStorage.setItem('gulzar_name', name); location.reload();
@@ -282,26 +272,22 @@
             loadOrders(name);
         }
 
-        function changeUser() {
-            localStorage.removeItem('gulzar_name'); savedUser = '';
-            location.reload();
-        }
+        function logoutUser() { localStorage.removeItem('gulzar_name'); location.reload(); }
 
         async function loadOrders(name) {
             const res = await fetch(`${API}/orders/${name}`);
             const data = await res.json();
-            document.getElementById('order-login-box').style.display = 'none';
+            document.getElementById('order-login').style.display = 'none';
             document.getElementById('orders-display').style.display = 'block';
             const list = document.getElementById('order-list');
-            list.innerHTML = data.reverse().map(o => {
-                const date = new Date(o.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                return `<div class="order-card">
-                    <span class="status-badge status-${o.status}">${o.status}</span>
-                    <div class="price-row" style="font-size:1.1rem; margin:0;"><span class="rs-symbol">₹</span><span>${o.totalAmount}</span></div>
-                    <small style="color:gray;">Date: ${date}</small><br>
-                    ${o.status !== 'Pending' ? `<button class="btn-primary" style="margin-top:10px;" onclick="window.location.href='/api/invoice/${o._id}'">VIEW BILL</button>` : '<p style="color:orange; margin-top:5px; font-weight:bold; font-size:0.8rem;">Approval Pending...</p>'}
-                </div>`;
-            }).join('');
+            list.innerHTML = data.reverse().map(o => `
+                <div class="order-card">
+                    <span style="float:right; font-size:0.7rem; color:orange;">${o.status}</span>
+                    <div class="price-row" style="margin:0;"><span class="rs-symbol">₹</span><span>${o.totalAmount}</span></div>
+                    <small style="color:gray;">${new Date(o.createdAt).toLocaleDateString()}</small><br>
+                    ${o.status !== 'Pending' ? `<button class="btn-primary" style="margin-top:10px; padding:5px; font-size:0.7rem;" onclick="window.location.href='/api/invoice/${o._id}'">VIEW BILL</button>` : ''}
+                </div>
+            `).join('');
         }
     </script>
 </body>
