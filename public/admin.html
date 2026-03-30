@@ -8,20 +8,28 @@
     <style>
         :root { --primary: #FF7B00; --dark: #1e272e; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: sans-serif; background: #f1f2f6; color: #2f3542; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { font-family: sans-serif; background: #f1f2f6; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-        .login-box { background: white; padding: 30px 20px; border-radius: 12px; width: 100%; max-width: 350px; text-align: center; }
-        .app-header { background: var(--dark); color: white; padding: 16px; text-align: center; font-size: 1.2rem; }
+        .login-box { background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 350px; text-align: center; }
+        
+        .app-header { background: var(--dark); color: white; padding: 16px; text-align: center; font-size: 1.2rem; font-weight: bold; }
         .app-main { flex: 1; overflow-y: auto; padding-bottom: 80px; padding: 15px; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        
         .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .price-row { color: var(--primary); font-weight: bold; display: flex; align-items: center; }
-        .rs-symbol { margin-right: 10px; font-weight: normal; color: #777; }
+        
+        /* FIX FOR RUPEE OVERLAP IN ADMIN */
+        .price-display { color: var(--primary); font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; margin-top: 5px; }
+        .rs-icon { margin-right: 12px; color: #888; font-weight: normal; }
+
         input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
         .btn-primary { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; }
-        .btn-danger { background: #ff4757; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .btn-danger { background: #ff4757; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; }
+        
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #747d8c; font-size: 0.7rem; cursor: pointer; }
         .nav-item.active { color: var(--primary); }
@@ -29,15 +37,18 @@
     </style>
 </head>
 <body>
+
     <div id="login-screen">
         <div class="login-box">
-            <h2 style="margin-bottom:20px;">Admin</h2>
+            <h2 style="margin-bottom:20px;">Admin Access</h2>
             <input type="text" id="admin_user" placeholder="Username">
             <input type="password" id="admin_pass" placeholder="Password">
             <button class="btn-primary" onclick="handleLogin()">LOGIN</button>
         </div>
     </div>
+
     <header class="app-header">Gulzar Admin</header>
+
     <main class="app-main">
         <section id="tab-dash" class="tab-content active">
             <div style="display:flex; gap:10px; margin-bottom:15px;">
@@ -45,17 +56,18 @@
                 <div class="card" style="flex:1; text-align:center;"><p>Orders</p><h2 id="stat-o">0</h2></div>
             </div>
             <div class="card">
-                <h3>Update Store Banner</h3>
+                <h3>Store Banner</h3>
                 <input type="text" id="b_url" placeholder="Image URL">
                 <input type="text" id="b_txt" placeholder="Offer Text">
-                <button class="btn-primary" onclick="updateBanner()">SAVE BANNER</button>
+                <button class="btn-primary" onclick="updateBanner()">UPDATE BANNER</button>
             </div>
         </section>
+
         <section id="tab-add" class="tab-content">
             <div class="card">
                 <h3>New Product</h3>
-                <input type="text" id="p_name" placeholder="Name">
-                <select id="p_cat"></select>
+                <input type="text" id="p_name" placeholder="Product Name">
+                <select id="p_cat"><option>Select Category</option></select>
                 <input type="number" id="p_price" placeholder="Price">
                 <input type="text" id="p_img" placeholder="Image URL">
                 <textarea id="p_desc" placeholder="Description"></textarea>
@@ -70,96 +82,168 @@
                 <div id="cat-list" style="margin-top:10px;"></div>
             </div>
         </section>
+
         <section id="tab-manage" class="tab-content">
             <h3>Manage Products</h3>
             <div id="manage-list" class="card"></div>
         </section>
+
         <section id="tab-orders" class="tab-content">
-            <h3>Orders</h3>
+            <h3>Manage Orders</h3>
             <div id="order-list-all"></div>
         </section>
     </main>
+
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('tab-dash', this)"><i class="fa-solid fa-house"></i><span>Dash</span></div>
         <div class="nav-item" onclick="switchTab('tab-add', this)"><i class="fa-solid fa-plus-circle"></i><span>Add</span></div>
         <div class="nav-item" onclick="switchTab('tab-manage', this)"><i class="fa-solid fa-box"></i><span>Stock</span></div>
         <div class="nav-item" onclick="switchTab('tab-orders', this)"><i class="fa-solid fa-receipt"></i><span>Orders</span></div>
     </nav>
+
     <script>
         const API = '/api';
         let token = localStorage.getItem('adminToken');
-        function refreshAll() { loadStats(); loadCats(); loadProds(); loadOrders(); loadBanner(); }
-        window.onload = () => { if(token) { document.getElementById('login-screen').style.display='none'; refreshAll(); } };
+
+        window.onload = function() {
+            if(token) {
+                document.getElementById('login-screen').style.display = 'none';
+                refreshData();
+            }
+        };
+
         function switchTab(id, el) {
             document.querySelectorAll('.tab-content, .nav-item').forEach(x => x.classList.remove('active'));
-            document.getElementById(id).classList.add('active'); el.classList.add('active'); refreshAll();
+            document.getElementById(id).classList.add('active');
+            el.classList.add('active');
+            refreshData();
         }
+
         async function handleLogin() {
-            const res = await fetch(`${API}/admin/login`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username: admin_user.value, password: admin_pass.value})});
+            const res = await fetch(`${API}/admin/login`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: admin_user.value, password: admin_pass.value})
+            });
             const data = await res.json();
-            if(data.token) { localStorage.setItem('adminToken', data.token); location.reload(); } else alert("Invalid");
+            if(data.token) {
+                localStorage.setItem('adminToken', data.token);
+                location.reload();
+            } else { alert("Invalid Login"); }
         }
+
+        function refreshData() {
+            loadStats();
+            loadCats();
+            loadProds();
+            loadOrders();
+            loadBanner();
+        }
+
         async function loadStats() {
             const res = await fetch(`${API}/admin/stats`, { headers: {'Authorization': `Bearer ${token}`} });
             const data = await res.json();
-            stat_p.innerText = data.totalProducts; stat_o.innerText = data.totalOrders;
+            stat_p.innerText = data.totalProducts;
+            stat_o.innerText = data.totalOrders;
         }
+
         async function loadBanner() {
-            const res = await fetch(`${API}/banner`); const data = await res.json();
-            b_url.value = data.imageUrl || ''; b_txt.value = data.text || '';
+            const res = await fetch(`${API}/banner`);
+            const data = await res.json();
+            b_url.value = data.imageUrl || '';
+            b_txt.value = data.text || '';
         }
+
         async function updateBanner() {
-            await fetch(`${API}/banner`, { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`}, body: JSON.stringify({imageUrl: b_url.value, text: b_txt.value})});
-            alert("Updated");
+            await fetch(`${API}/banner`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+                body: JSON.stringify({imageUrl: b_url.value, text: b_txt.value})
+            });
+            alert("Banner Updated!");
         }
+
         async function loadCats() {
-            const res = await fetch(`${API}/categories`); const data = await res.json();
+            const res = await fetch(`${API}/categories`);
+            const data = await res.json();
             p_cat.innerHTML = data.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-            cat_list.innerHTML = data.map(c => `<div class="item-row"><span>${c.name}</span><button class="btn-danger" onclick="deleteCategory('${c._id}')">Del</button></div>`).join('');
+            cat_list.innerHTML = data.map(c => `<div class="item-row"><span>${c.name}</span><button class="btn-danger" onclick="deleteCategory('${c._id}')">Delete</button></div>`).join('');
         }
+
         async function saveCategory() {
-            await fetch(`${API}/categories`, { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`}, body: JSON.stringify({name: new_cat_name.value})});
-            new_cat_name.value = ''; loadCats();
+            await fetch(`${API}/categories`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+                body: JSON.stringify({name: new_cat_name.value})
+            });
+            new_cat_name.value = '';
+            loadCats();
         }
-        async function deleteCategory(id) { await fetch(`${API}/categories/${id}`, { method: 'DELETE', headers: {'Authorization': `Bearer ${token}`} }); loadCats(); }
+
+        async function deleteCategory(id) {
+            await fetch(`${API}/categories/${id}`, { method: 'DELETE', headers: {'Authorization': `Bearer ${token}`} });
+            loadCats();
+        }
+
         async function loadProds() {
-            const res = await fetch(`${API}/products`); const data = await res.json();
+            const res = await fetch(`${API}/products`);
+            const data = await res.json();
             manage_list.innerHTML = data.map(p => `
                 <div class="item-row">
-                    <div><b>${p.name}</b><br><div class="price-row"><span class="rs-symbol">₹</span><span>${p.price}</span></div></div>
-                    <button class="btn-danger" onclick="deleteProduct('${p._id}')">Delete</button>
+                    <div>
+                        <b>${p.name}</b>
+                        <div class="price-display"><span class="rs-icon">₹</span><span>${p.price}</span></div>
+                    </div>
+                    <button class="btn-danger" onclick="removeProduct('${p._id}')">Delete</button>
                 </div>
             `).join('');
         }
+
         async function saveProduct() {
             const body = {name: p_name.value, category: p_cat.value, price: p_price.value, image: p_img.value, description: p_desc.value};
-            await fetch(`${API}/products`, { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`}, body: JSON.stringify(body)});
-            alert("Saved"); refreshAll();
-        }
-        // TARGETED FIX FOR PRODUCT DELETE
-        async function deleteProduct(productId) {
-            if(!confirm("Delete product?")) return;
-            const res = await fetch(`${API}/products/${productId}`, { 
-                method: 'DELETE', 
-                headers: {'Authorization': `Bearer ${token}`} 
+            await fetch(`${API}/products`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+                body: JSON.stringify(body)
             });
-            if(res.ok) { loadProds(); loadStats(); } else { alert("Delete failed"); }
+            alert("Saved!");
+            refreshData();
         }
+
+        // --- THE TARGETED FIX FOR PRODUCT DELETE ---
+        async function removeProduct(id) {
+            if(!confirm("Delete this item?")) return;
+            const res = await fetch(`${API}/products/${id}`, { 
+                method: 'DELETE', 
+                headers: { 'Authorization': `Bearer ${token}` } 
+            });
+            if(res.ok) {
+                refreshData();
+            } else {
+                alert("Could not delete. Server error.");
+            }
+        }
+
         async function loadOrders() {
             const res = await fetch(`${API}/orders/all`, { headers: {'Authorization': `Bearer ${token}`} });
             const data = await res.json();
             order_list_all.innerHTML = data.map(o => `
                 <div class="card">
                     <b>${o.customerName}</b><br>
-                    <div class="price-row"><span class="rs-symbol">₹</span><span>${o.totalAmount}</span></div>
+                    <div class="price-display"><span class="rs-icon">₹</span><span>${o.totalAmount}</span></div>
                     <button class="btn-primary" style="margin-top:10px; padding:8px;" onclick="updateOrderStatus('${o._id}', '${o.status === 'Pending' ? 'Approved' : 'Paid'}')">
-                        ${o.status === 'Pending' ? 'APPROVE' : 'MARK PAID'}
+                        ${o.status === 'Pending' ? 'APPROVE' : 'MARK AS PAID'}
                     </button>
                 </div>
             `).join('');
         }
+
         async function updateOrderStatus(id, s) {
-            await fetch(`${API}/orders/${id}/status`, { method: 'PUT', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`}, body: JSON.stringify({status: s})});
+            await fetch(`${API}/orders/${id}/status`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+                body: JSON.stringify({status: s})
+            });
             loadOrders();
         }
     </script>
