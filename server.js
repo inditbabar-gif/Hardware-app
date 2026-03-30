@@ -10,8 +10,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ⚠️ YOUR CONNECTION STRING
-const mongoURI = 'mongodb+srv://babarhere:Sujjat%40211@cluster0.ecudqzb.mongodb.net/hardware?retryWrites=true&w=majority';
-
+const mongoURI = 'mongodb+srv://gulzar:hardware123@cluster0.ecudqzb.mongodb.net/hardware?retryWrites=true&w=majority';
 // NEW: ASYNC CONNECTION FUNCTION
 async function startServer() {
     try {
