@@ -6,7 +6,8 @@ const OrderSchema = new mongoose.Schema({
     customerName: String,
     items: Array,
     totalAmount: Number,
-    status: { type: String, default: 'Pending' },
+    status: { type: String, default: 'Pending' }, // Status: Pending, Approved, Paid
+    reminderSent: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
 
