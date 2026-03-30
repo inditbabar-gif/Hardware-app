@@ -12,16 +12,30 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ⚠️ YOUR CONNECTION STRING
 const mongoURI = 'mongodb+srv://babarhere:Sujjat%40211@cluster0.ecudqzb.mongodb.net/hardware?retryWrites=true&w=majority';
 
-// CONNECT WITH NO BUFFERING
-mongoose.connect(mongoURI, { 
-    useNewUrlParser: true, 
-    useUnifiedTopology: true,
-    bufferCommands: false // This stops the "Buffering" freeze
-})
-.then(() => console.log("✅ Database Connected!"))
-.catch(err => console.log("❌ Database Error: ", err));
+// NEW: ASYNC CONNECTION FUNCTION
+async function startServer() {
+    try {
+        console.log("Connecting to MongoDB...");
+        await mongoose.connect(mongoURI, { 
+            useNewUrlParser: true, 
+            useUnifiedTopology: true 
+        });
+        console.log("✅ Database Connected Successfully!");
 
-// ADMIN SECURITY
+        // ONLY START LISTENING AFTER DB IS CONNECTED
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, () => {
+            console.log(`🚀 Server is live on port ${PORT}`);
+        });
+
+    } catch (err) {
+        console.error("❌ Database Connection Failed:", err.message);
+        // Try to start the server anyway so Render doesn't keep crashing
+        app.listen(process.env.PORT || 3000);
+    }
+}
+
+// ADMIN AUTH
 const adminAuth = (req, res, next) => {
     if(req.headers.authorization === 'Bearer gulzar-secret-admin-token') next();
     else res.status(401).json({ error: 'Unauthorized' });
@@ -30,7 +44,7 @@ const adminAuth = (req, res, next) => {
 app.post('/api/admin/login', (req, res) => {
     if(req.body.username === 'admin' && req.body.password === 'admin123') 
         res.json({ token: 'gulzar-secret-admin-token' });
-    else res.status(401).json({ error: 'Invalid' });
+    else res.status(401).json({ error: 'Invalid Credentials' });
 });
 
 // DASHBOARD STATS
@@ -112,5 +126,5 @@ app.get('/api/seed', async (req, res) => {
     } catch(e) { res.status(500).send("Seed Error: " + e.message); }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+// LAUNCH
+startServer();
