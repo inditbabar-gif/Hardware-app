@@ -15,106 +15,61 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log("DB Connected"))
     .catch(err => console.log("DB Error", err));
 
-// SECURITY TOKEN
-const ADMIN_TOKEN = 'gulzar-secret-admin-token';
-
 const adminAuth = (req, res, next) => {
-    if (req.headers.authorization === `Bearer ${ADMIN_TOKEN}`) {
-        next();
-    } else {
-        res.status(401).json({ error: 'Unauthorized' });
-    }
+    if (req.headers.authorization === 'Bearer gulzar-secret-admin-token') next();
+    else res.status(401).json({ error: 'Unauthorized' });
 };
 
-// LOGIN
 app.post('/api/admin/login', (req, res) => {
-    if(req.body.username === 'admin' && req.body.password === 'admin123') {
-        res.json({ token: ADMIN_TOKEN });
-    } else {
-        res.status(401).json({ error: 'Invalid' });
-    }
+    if(req.body.username === 'admin' && req.body.password === 'admin123') res.json({ token: 'gulzar-secret-admin-token' });
+    else res.status(401).json({ error: 'Invalid' });
 });
 
-// PUBLIC GET DATA
-app.get('/api/products', async (req, res) => {
-    const p = await Product.find();
-    res.json(p);
-});
+app.get('/api/products', async (req, res) => res.json(await Product.find()));
+app.get('/api/categories', async (req, res) => res.json(await Category.find()));
+app.get('/api/banner', async (req, res) => res.json(await Banner.findOne() || { imageUrl: '', text: '' }));
 
-app.get('/api/categories', async (req, res) => {
-    const c = await Category.find();
-    res.json(c);
-});
-
-app.get('/api/banner', async (req, res) => {
-    const b = await Banner.findOne();
-    res.json(b || { imageUrl: '', text: '' });
-});
-
-// PRIVATE ADMIN ACTIONS
 app.get('/api/admin/stats', adminAuth, async (req, res) => {
     const pCount = await Product.countDocuments();
     const oCount = await Order.countDocuments();
     res.json({ totalProducts: pCount, totalOrders: oCount });
 });
 
-app.post('/api/products', adminAuth, async (req, res) => {
-    const p = new Product(req.body);
-    await p.save();
-    res.json(p);
+app.post('/api/banner', adminAuth, async (req, res) => {
+    await Banner.deleteMany({});
+    res.json(await new Banner(req.body).save());
 });
 
+app.post('/api/products', adminAuth, async (req, res) => res.json(await new Product(req.body).save()));
+
+// --- THIS IS THE CRITICAL FIX FOR PRODUCT DELETE ---
 app.delete('/api/products/:id', adminAuth, async (req, res) => {
     await Product.findByIdAndDelete(req.params.id);
     res.json({ success: true });
 });
 
-app.post('/api/categories', adminAuth, async (req, res) => {
-    const c = new Category(req.body);
-    await c.save();
-    res.json(c);
-});
+app.post('/api/categories', adminAuth, async (req, res) => res.json(await new Category(req.body).save()));
 
 app.delete('/api/categories/:id', adminAuth, async (req, res) => {
     await Category.findByIdAndDelete(req.params.id);
     res.json({ success: true });
 });
 
-app.post('/api/banner', adminAuth, async (req, res) => {
-    await Banner.deleteMany({});
-    const b = new Banner(req.body);
-    await b.save();
-    res.json(b);
-});
-
-app.get('/api/orders/all', adminAuth, async (req, res) => {
-    const o = await Order.find().sort({ createdAt: -1 });
-    res.json(o);
-});
+app.get('/api/orders/all', adminAuth, async (req, res) => res.json(await Order.find().sort({ createdAt: -1 })));
 
 app.put('/api/orders/:id/status', adminAuth, async (req, res) => {
     await Order.findByIdAndUpdate(req.params.id, { status: req.body.status });
     res.json({ success: true });
 });
 
-// USER ORDERING
-app.post('/api/orders', async (req, res) => {
-    const o = new Order(req.body);
-    await o.save();
-    res.json(o);
-});
+app.post('/api/orders', async (req, res) => res.json(await new Order(req.body).save()));
+app.get('/api/orders/:name', async (req, res) => res.json(await Order.find({ customerName: req.params.name })));
 
-app.get('/api/orders/:name', async (req, res) => {
-    const o = await Order.find({ customerName: req.params.name });
-    res.json(o);
-});
-
-// INVOICE
 app.get('/api/invoice/:orderId', async (req, res) => {
     const o = await Order.findById(req.params.orderId);
     if(!o) return res.send("Order not found");
     const items = o.items.map(i => `<tr><td>${i.name}</td><td>${i.quantity}</td><td>₹${i.price * i.quantity}</td></tr>`).join('');
-    res.send(`<html><body style="font-family:sans-serif;padding:20px;"><h2>Gulzar Hardware</h2><p>Customer: ${o.customerName}</p><table border="1" width="100%" style="border-collapse:collapse;"><tr><th>Item</th><th>Qty</th><th>Total</th></tr>${items}</table><h3>Total: ₹${o.totalAmount}</h3><button onclick="window.print()">Print</button></body></html>`);
+    res.send(`<html><body style="font-family:sans-serif;padding:20px;"><h2>Gulzar Hardware Receipt</h2><p>Customer: ${o.customerName}</p><table border="1" width="100%" style="border-collapse:collapse;"><tr><th>Item</th><th>Qty</th><th>Total</th></tr>${items}</table><h3>Total: ₹${o.totalAmount}</h3><button onclick="window.print()">Print</button></body></html>`);
 });
 
 app.listen(process.env.PORT || 3000);
