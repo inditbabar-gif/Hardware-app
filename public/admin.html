@@ -10,31 +10,22 @@
         :root { --admin-bg: #1e272e; --accent: #FF7B00; --surface: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Roboto', sans-serif; background: #f1f2f6; color: #2f3542; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--admin-bg); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         .login-box { background: white; padding: 30px 20px; border-radius: 12px; width: 100%; max-width: 350px; text-align: center; }
-        
         .app-header { background: var(--admin-bg); color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
         .app-main { flex: 1; overflow-y: auto; padding-bottom: 80px; }
         .tab-content { display: none; padding: 15px; }
         .tab-content.active { display: block; }
-        
         .admin-card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .section-title { font-size: 1rem; font-weight: 700; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        
-        /* THE RUPEE FIX FOR ADMIN */
         .price-row { color: var(--accent); font-weight: 700; display: flex; align-items: center; }
         .rs-symbol { margin-right: 8px; font-weight: 400; color: #777; font-size: 0.9rem; } 
-
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
-        
         .btn-primary { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; }
         .btn-danger { background: #ff4757; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 0.75rem; }
-        
         .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
-        
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #747d8c; font-size: 0.65rem; }
         .nav-item.active { color: var(--accent); }
@@ -42,227 +33,99 @@
     </style>
 </head>
 <body>
-
     <div id="login-screen">
         <div class="login-box">
             <h2 style="margin-bottom:20px;">Admin Access</h2>
-            <input type="text" id="user" placeholder="Username" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
-            <input type="password" id="pass" placeholder="Password" style="width:100%; padding:12px; margin-bottom:20px; border-radius:8px; border:1px solid #ddd;">
+            <input type="text" id="user" placeholder="Username">
+            <input type="password" id="pass" placeholder="Password">
             <button class="btn-primary" onclick="login()">LOGIN</button>
         </div>
     </div>
-
-    <header class="app-header">
-        <h1>Admin Control</h1>
-        <i class="fa-solid fa-power-off" onclick="logout()"></i>
-    </header>
-
+    <header class="app-header"><h1>Admin Control</h1><i class="fa-solid fa-power-off" onclick="logout()"></i></header>
     <main class="app-main">
         <section id="tab-dash" class="tab-content active">
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
-                <div class="admin-card" style="text-align:center;"><p>Inventory</p><h2 id="stat-p">0</h2></div>
-                <div class="admin-card" style="text-align:center;"><p>Total Orders</p><h2 id="stat-o">0</h2></div>
+                <div class="admin-card" style="text-align:center;"><p>Items</p><h2 id="stat-p">0</h2></div>
+                <div class="admin-card" style="text-align:center;"><p>Orders</p><h2 id="stat-o">0</h2></div>
             </div>
-
-            <!-- PRO FEATURE: BANNER MANAGER -->
             <div class="admin-card">
-                <div class="section-title">Store Banner Management</div>
-                <div class="form-group"><label>Banner Image URL</label><input type="text" id="banner-url" placeholder="https://image-link.com"></div>
-                <div class="form-group"><label>Banner Text / Offer</label><input type="text" id="banner-text" placeholder="Eid Special: 20% Off!"></div>
-                <button class="btn-primary" style="background:#2d3436;" onclick="updateBanner()">UPDATE LIVE BANNER</button>
+                <div class="section-title">Update Banner</div>
+                <div class="form-group"><input type="text" id="banner-url" placeholder="Image URL"></div>
+                <div class="form-group"><input type="text" id="banner-text" placeholder="Offer Text"></div>
+                <button class="btn-primary" onclick="updateBanner()">UPDATE BANNER</button>
             </div>
-
-            <div class="section-title">Live Notifications</div>
-            <div id="notify-list" class="admin-card"></div>
+            <div id="notify-list"></div>
         </section>
-
         <section id="tab-add" class="tab-content">
             <div class="admin-card">
-                <div class="section-title">Add Product</div>
+                <div class="section-title">New Product</div>
                 <div class="form-group"><label>Name</label><input type="text" id="p-name"></div>
                 <div class="form-group"><label>Category</label><select id="p-cat"></select></div>
-                <div class="form-group"><label>Price (₹)</label><input type="number" id="p-price"></div>
+                <div class="form-group"><label>Price</label><input type="number" id="p-price"></div>
                 <div class="form-group"><label>Image URL</label><input type="text" id="p-img"></div>
                 <div class="form-group"><label>Description</label><textarea id="p-desc"></textarea></div>
-                <button class="btn-primary" onclick="addProduct()">SAVE PRODUCT</button>
+                <button class="btn-primary" onclick="addProduct()">SAVE</button>
             </div>
-            
             <div class="admin-card">
-                <div class="section-title">Categories</div>
-                <div style="display:flex; gap:5px; margin-bottom:15px;">
-                    <input type="text" id="new-cat" placeholder="Category Name" style="flex:1; padding:10px; border:1px solid #ddd;">
-                    <button class="btn-primary" style="width:auto; padding:10px 20px;" onclick="addCategory()">ADD</button>
-                </div>
-                <div id="cat-list"></div>
+                <div class="section-title">Add Category</div>
+                <div style="display:flex; gap:5px;"><input type="text" id="new-cat" style="flex:1;"><button class="btn-primary" style="width:auto; padding:10px;" onclick="addCategory()">ADD</button></div>
+                <div id="cat-list" style="margin-top:10px;"></div>
             </div>
         </section>
-
         <section id="tab-manage" class="tab-content">
-            <div class="section-title">Manage Inventory</div>
-            <div class="admin-card">
-                <input type="text" id="manage-search" placeholder="Search products..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #eee; margin-bottom:15px;" oninput="filterManageList()">
-                <div id="prod-list"></div>
-            </div>
+            <div class="section-title">Manage Products</div>
+            <div id="prod-list"></div>
         </section>
-
-        <section id="tab-orders" class="tab-content">
-            <div class="section-title">Orders Management</div>
-            <div id="order-list-all"></div>
-        </section>
+        <section id="tab-orders" class="tab-content"><div id="order-list-all"></div></section>
     </main>
-
     <nav class="bottom-nav">
-        <div class="nav-item active" data-target="tab-dash"><i class="fa-solid fa-house-laptop"></i><span>Dash</span></div>
-        <div class="nav-item" data-target="tab-add"><i class="fa-solid fa-folder-plus"></i><span>Create</span></div>
-        <div class="nav-item" data-target="tab-manage"><i class="fa-solid fa-boxes-stacked"></i><span>Stock</span></div>
+        <div class="nav-item active" data-target="tab-dash"><i class="fa-solid fa-home"></i><span>Dash</span></div>
+        <div class="nav-item" data-target="tab-add"><i class="fa-solid fa-plus"></i><span>Add</span></div>
+        <div class="nav-item" data-target="tab-manage"><i class="fa-solid fa-box"></i><span>Stock</span></div>
         <div class="nav-item" data-target="tab-orders"><i class="fa-solid fa-receipt"></i><span>Orders</span></div>
     </nav>
-
     <script>
         const API = '/api';
         let token = localStorage.getItem('adminToken');
-        let allProducts = [];
-
         window.onload = () => { if(token) { document.getElementById('login-screen').style.display='none'; init(); } setupNav(); };
-
         async function login() {
-            const res = await fetch(`${API}/admin/login`, {
-                method: 'POST', headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({username: document.getElementById('user').value, password: document.getElementById('pass').value})
-            });
+            const res = await fetch(`${API}/admin/login`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({username: user.value, password: pass.value})});
             const data = await res.json();
-            if(data.token) { token = data.token; localStorage.setItem('adminToken', token); location.reload(); }
-            else alert("Invalid");
+            if(data.token) { localStorage.setItem('adminToken', data.token); location.reload(); } else alert("Invalid");
         }
-
         function logout() { localStorage.removeItem('adminToken'); location.reload(); }
-
-        function init() { fetchStats(); fetchCats(); fetchProds(); fetchOrders(); fetchCurrentBanner(); }
-
-        async function fetchCurrentBanner() {
-            const res = await fetch(`${API}/banner`);
-            const b = await res.json();
-            document.getElementById('banner-url').value = b.imageUrl || '';
-            document.getElementById('banner-text').value = b.text || '';
-        }
-
-        async function updateBanner() {
-            const res = await fetch(`${API}/banner`, {
-                method: 'POST', headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${token}`},
-                body: JSON.stringify({ imageUrl: document.getElementById('banner-url').value, text: document.getElementById('banner-text').value })
-            });
-            if(res.ok) alert("Live Banner Updated!");
-        }
-
+        function init() { fetchStats(); fetchCats(); fetchProds(); fetchOrders(); fetchBanner(); }
+        async function fetchBanner() { const res = await fetch(`${API}/banner`); const b = await res.json(); banner_url.value=b.imageUrl||''; banner_text.value=b.text||''; }
+        async function updateBanner() { await fetch(`${API}/banner`, { method:'POST', headers:{'Content-Type':'application/json', 'Authorization':`Bearer ${token}`}, body:JSON.stringify({imageUrl:banner_url.value, text:banner_text.value})}); alert("Updated"); }
         async function fetchStats() {
             const res = await fetch(`${API}/admin/stats`, { headers: {'Authorization': `Bearer ${token}`} });
             const data = await res.json();
-            document.getElementById('stat-p').innerText = data.totalProducts;
-            document.getElementById('stat-o').innerText = data.totalOrders;
-            document.getElementById('notify-list').innerHTML = data.notifications.map(n => `<div style="color:${n.type==='danger'?'red':'#ffa502'}; font-size:0.8rem; margin-bottom:8px; padding:5px; border-bottom:1px solid #f9f9f9;">• ${n.text}</div>`).join('');
+            stat_p.innerText = data.totalProducts; stat_o.innerText = data.totalOrders;
+            notify_list.innerHTML = data.notifications.map(n => `<div class="admin-card" style="color:red; font-size:0.8rem;">${n.text}</div>`).join('');
         }
-
         async function fetchCats() {
-            const res = await fetch(`${API}/categories`);
-            const cats = await res.json();
-            document.getElementById('p-cat').innerHTML = cats.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-            document.getElementById('cat-list').innerHTML = cats.map(c => `<div class="item-row"><span>${c.name}</span><button class="btn-danger" onclick="deleteCat('${c._id}')">Remove</button></div>`).join('');
+            const res = await fetch(`${API}/categories`); const cats = await res.json();
+            p_cat.innerHTML = cats.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            cat_list.innerHTML = cats.map(c => `<div class="item-row"><span>${c.name}</span><button class="btn-danger" onclick="deleteCat('${c._id}')">DEL</button></div>`).join('');
         }
-
-        async function addCategory() {
-            const name = document.getElementById('new-cat').value;
-            await fetch(`${API}/categories`, {
-                method: 'POST', headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${token}`},
-                body: JSON.stringify({name, icon: 'fa-circle'})
-            });
-            document.getElementById('new-cat').value = ''; fetchCats();
-        }
-
-        async function deleteCat(id) {
-            await fetch(`${API}/categories/${id}`, { method: 'DELETE', headers: {'Authorization': `Bearer ${token}`} });
-            fetchCats();
-        }
-
+        async function addCategory() { await fetch(`${API}/categories`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body:JSON.stringify({name:new_cat.value})}); new_cat.value=''; fetchCats(); }
+        async function deleteCat(id) { await fetch(`${API}/categories/${id}`, { method:'DELETE', headers:{'Authorization':`Bearer ${token}`}}); fetchCats(); }
         async function addProduct() {
-            const p = {
-                name: document.getElementById('p-name').value,
-                category: document.getElementById('p-cat').value,
-                price: document.getElementById('p-price').value,
-                image: document.getElementById('p-img').value,
-                description: document.getElementById('p-desc').value
-            };
-            await fetch(`${API}/products`, {
-                method: 'POST', headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${token}`},
-                body: JSON.stringify(p)
-            });
-            alert("Product Added!"); location.reload();
+            const body = {name:p_name.value, category:p_cat.value, price:p_price.value, image:p_img.value, description:p_desc.value};
+            await fetch(`${API}/products`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body:JSON.stringify(body)});
+            alert("Saved"); fetchProds();
         }
-
         async function fetchProds() {
-            const res = await fetch(`${API}/products`);
-            allProducts = await res.json();
-            renderManageList(allProducts);
+            const res = await fetch(`${API}/products`); const data = await res.json();
+            prod_list.innerHTML = data.map(p => `<div class="item-row"><div><b>${p.name}</b><br>₹${p.price}</div><button class="btn-danger" onclick="deleteProd('${p._id}')">DEL</button></div>`).join('');
         }
-
-        function renderManageList(list) {
-            document.getElementById('prod-list').innerHTML = list.map(p => `
-                <div class="item-row">
-                    <div><b>${p.name}</b><div class="price-row" style="font-size:0.8rem;"><span class="rs-symbol">₹</span><span>${p.price}</span></div></div>
-                    <button class="btn-danger" onclick="deleteProd('${p._id}')">Delete</button>
-                </div>
-            `).join('');
-        }
-
-        function filterManageList() {
-            const q = document.getElementById('manage-search').value.toLowerCase();
-            renderManageList(allProducts.filter(p => p.name.toLowerCase().includes(q)));
-        }
-
-        async function deleteProd(id) {
-            if(!confirm("Delete?")) return;
-            await fetch(`${API}/products/${id}`, { method: 'DELETE', headers: {'Authorization': `Bearer ${token}`} });
-            fetchProds(); fetchStats();
-        }
-
+        async function deleteProd(id) { if(confirm("Delete?")) { await fetch(`${API}/products/${id}`, { method:'DELETE', headers:{'Authorization':`Bearer ${token}`}}); fetchProds(); } }
         async function fetchOrders() {
-            const res = await fetch(`${API}/orders/all`, { headers: {'Authorization': `Bearer ${token}`} });
-            const data = await res.json();
-            document.getElementById('order-list-all').innerHTML = data.map(o => `
-                <div class="admin-card">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                        <b>${o.customerName}</b>
-                        <span style="font-size:0.7rem; color:${o.status==='Paid'?'green':'#ff7b00'}; font-weight:bold;">${o.status.toUpperCase()}</span>
-                    </div>
-                    <div class="price-row" style="margin-bottom:10px;"><span class="rs-symbol">₹</span><span>${o.totalAmount}</span></div>
-                    <div style="font-size:0.8rem; color:gray; border-top:1px solid #eee; padding-top:5px; margin-bottom:10px;">
-                        ${o.items.map(i => `${i.name} (x${i.quantity})`).join(', ')}
-                    </div>
-                    ${o.status !== 'Paid' ? `
-                        <button class="btn-primary" style="padding:8px; font-size:0.8rem;" onclick="updateOrder('${o._id}', '${o.status==='Pending'?'Approved':'Paid'}')">
-                            ${o.status==='Pending'?'APPROVE ORDER':'MARK AS PAID'}
-                        </button>` : ''}
-                </div>
-            `).join('');
+            const res = await fetch(`${API}/orders/all`, { headers:{'Authorization':`Bearer ${token}`}}); const data = await res.json();
+            order_list_all.innerHTML = data.map(o => `<div class="admin-card"><b>${o.customerName}</b> - ₹${o.totalAmount}<br><button class="btn-primary" style="margin-top:10px; padding:5px;" onclick="updateOrder('${o._id}', '${o.status==='Pending'?'Approved':'Paid'}')">${o.status==='Pending'?'APPROVE':'MARK PAID'}</button></div>`).join('');
         }
-
-        async function updateOrder(id, s) {
-            await fetch(`${API}/orders/${id}/status`, {
-                method: 'PUT', headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${token}`},
-                body: JSON.stringify({status: s})
-            });
-            fetchOrders(); fetchStats();
-        }
-
-        function setupNav() {
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                    item.classList.add('active');
-                    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-                    document.getElementById(item.getAttribute('data-target')).classList.add('active');
-                });
-            });
-        }
+        async function updateOrder(id, s) { await fetch(`${API}/orders/${id}/status`, { method:'PUT', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body:JSON.stringify({status:s})}); fetchOrders(); }
+        function setupNav() { document.querySelectorAll('.nav-item').forEach(i => i.onclick = () => { document.querySelectorAll('.nav-item, .tab-content').forEach(x=>x.classList.remove('active')); i.classList.add('active'); document.getElementById(i.getAttribute('data-target')).classList.add('active'); }); }
     </script>
 </body>
 </html>
