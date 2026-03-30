@@ -7,9 +7,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #FF7B00; --bg: #f5f6FA; --surface: #ffffff; --text: #2d3436; }
+        :root { --primary: #FF7B00; --bg: #f5f6FA; --surface: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Roboto', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg); color: #2d3436; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
         .app-header { background: var(--primary); color: white; padding: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .app-main { flex: 1; overflow-y: auto; padding-bottom: 80px; }
@@ -17,37 +17,42 @@
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* PRODUCT CARDS */
+        /* PRODUCT CARDS - FIXED FOR OVERLAP */
         .grid-layout { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .card { background: #fff; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; height: 260px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card { background: #fff; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; height: 270px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .card img { width: 100%; height: 110px; object-fit: contain; margin-bottom: 10px; background: #fafafa; }
         .card-title { font-size: 0.9rem; font-weight: 500; height: 38px; overflow: hidden; margin-bottom: 5px; }
-        .card-price { color: var(--primary); font-weight: 700; font-size: 1.15rem; margin-top: auto; margin-bottom: 10px; padding-left: 15px; }
         
+        /* THE FIX FOR RUPEE OVERLAP */
+        .card-price { 
+            color: var(--primary); 
+            font-weight: 700; 
+            font-size: 1.2rem; 
+            margin-top: auto; 
+            margin-bottom: 10px; 
+            display: flex; 
+            align-items: center;
+        }
+        .rs-symbol { margin-right: 8px; font-weight: 400; color: #555; } /* Forced gap */
+
         .btn-primary { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 12px; width: 100%; font-weight: 700; cursor: pointer; }
 
         /* BOTTOM NAV */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #fff; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; z-index: 1000; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #747d8c; text-decoration: none; }
         .nav-item i { font-size: 1.5rem; margin-bottom: 4px; }
+        .nav-item span { font-size: 0.7rem; font-weight: 500; }
         .nav-item.active { color: var(--primary); }
 
-        /* OVERLAYS */
-        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:2000; display:none; flex-direction:column; padding:20px; overflow-y:auto; }
-        .overlay.show { display: flex; }
-
-        .order-card { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        /* ORDERS LIST */
+        .order-card { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; float: right; }
         .status-Pending { background: #ffeaa7; color: #d63031; }
         .status-Approved { background: var(--primary); color: #fff; }
         .status-Paid { background: #55efc4; color: #00b894; }
 
-        /* PRINT LOGIC */
-        @media print {
-            body * { visibility: hidden; }
-            #bill-content, #bill-content * { visibility: visible; }
-            #bill-content { position: absolute; left: 0; top: 0; width: 100%; }
-        }
+        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:2000; display:none; flex-direction:column; padding:20px; overflow-y:auto; }
+        .overlay.show { display: flex; }
     </style>
 </head>
 <body>
@@ -56,26 +61,38 @@
 
     <main class="app-main">
         <section id="tab-home" class="tab-content active"><div id="products-grid" class="grid-layout"></div></section>
+        
         <section id="tab-cart" class="tab-content">
+            <h2 style="margin-bottom:15px;">Your Cart</h2>
             <div id="cart-list"></div>
             <div id="cart-footer" style="display:none; margin-top:20px;">
-                <h3 id="total-price" style="margin-bottom:15px;">Total: ₹0</h3>
-                <input type="text" id="cust-name" placeholder="Enter Name" style="width:100%; padding:15px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc;">
+                <h3 id="total-price" style="margin-bottom:15px;">Total Bill: ₹0</h3>
+                <input type="text" id="cust-name" placeholder="Enter Your Name" style="width:100%; padding:15px; border-radius:8px; border:1px solid #ccc; font-size: 1rem; margin-bottom:10px;">
                 <button class="btn-primary" onclick="placeOrder()">PLACE ORDER</button>
             </div>
-            <div id="cart-empty" style="text-align:center; margin-top:50px; opacity:0.3;">Cart is Empty</div>
+            <div id="cart-empty" style="text-align:center; margin-top:50px; opacity:0.3;">Your Cart is Empty</div>
         </section>
+
         <section id="tab-orders" class="tab-content">
-            <div id="order-auth">
-                <input type="text" id="view-name" placeholder="Name" style="width:100%; padding:15px; border-radius:8px; border:1px solid #ccc; margin-bottom:10px;">
-                <button class="btn-primary" onclick="loadOrders()">SEARCH ORDERS</button>
+            <!-- Search only shows if no name saved -->
+            <div id="order-login-box" style="background:white; padding:20px; border-radius:12px;">
+                <p style="margin-bottom:10px;">Please enter your name to see orders:</p>
+                <input type="text" id="view-name" placeholder="Full Name" style="width:100%; padding:15px; border-radius:8px; border:1px solid #ccc; margin-bottom:10px; font-size:1rem;">
+                <button class="btn-primary" onclick="manualSearch()">SEARCH MY ORDERS</button>
             </div>
-            <div id="orders-display" style="display:none;"><div id="order-list"></div></div>
+            
+            <div id="orders-display" style="display:none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h2 id="order-title">My Orders</h2>
+                    <button onclick="changeUser()" style="background:none; border:none; color:var(--primary); font-size:0.8rem; font-weight:bold;">Switch User</button>
+                </div>
+                <div id="order-list"></div>
+            </div>
         </section>
     </main>
 
     <div id="bill-overlay" class="overlay">
-        <button onclick="document.getElementById('bill-overlay').classList.remove('show')" style="padding:15px; background:#333; color:white; border:none; border-radius:8px; margin-bottom:20px; width: 100px;">BACK</button>
+        <button onclick="document.getElementById('bill-overlay').classList.remove('show')" style="padding:12px; background:#333; color:white; border:none; border-radius:8px; margin-bottom:20px;">CLOSE BILL</button>
         <div id="bill-content"></div>
     </div>
 
@@ -88,8 +105,17 @@
     <script>
         const API = '/api';
         let cart = JSON.parse(localStorage.getItem('gulzar_cart') || '[]');
+        let savedUser = localStorage.getItem('gulzar_name') || '';
 
-        window.onload = () => { fetchProducts(); setupNav(); };
+        window.onload = () => {
+            fetchProducts();
+            setupNav();
+            // If user already exists, fill inputs
+            if(savedUser) {
+                document.getElementById('cust-name').value = savedUser;
+                document.getElementById('view-name').value = savedUser;
+            }
+        };
 
         function setupNav() {
             document.querySelectorAll('.nav-item').forEach(item => {
@@ -99,7 +125,12 @@
                     const target = item.getAttribute('data-target');
                     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
                     document.getElementById(target).classList.add('active');
+                    
                     if(target === 'tab-cart') renderCart();
+                    // AUTO-LOAD ORDERS WHEN TAB CLICKED
+                    if(target === 'tab-orders' && savedUser) {
+                        loadOrders(savedUser);
+                    }
                 });
             });
         }
@@ -111,7 +142,10 @@
                 <div class="card">
                     <img src="${p.image}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1162/1162456.png'">
                     <div class="card-title">${p.name}</div>
-                    <div class="card-price">₹ ${p.price}</div>
+                    <div class="card-price">
+                        <span class="rs-symbol">₹</span>
+                        <span>${p.price}</span>
+                    </div>
                     <button class="btn-primary" onclick="addToCart('${p._id}', '${p.name}', ${p.price})">ADD</button>
                 </div>
             `).join('');
@@ -121,12 +155,13 @@
             const ex = cart.find(i => i.productId === id);
             if(ex) ex.quantity++; else cart.push({ productId: id, name, price, quantity: 1 });
             localStorage.setItem('gulzar_cart', JSON.stringify(cart));
-            alert("Added!");
+            alert("Added to cart!");
         }
 
         function renderCart() {
             const list = document.getElementById('cart-list');
             if(cart.length === 0) { 
+                list.innerHTML = '';
                 document.getElementById('cart-footer').style.display = 'none';
                 document.getElementById('cart-empty').style.display = 'block';
                 return; 
@@ -136,37 +171,64 @@
             let total = 0;
             list.innerHTML = cart.map(i => {
                 total += (i.price * i.quantity);
-                return `<div style="background:#fff; padding:15px; margin-bottom:10px; border-radius:10px;"><b>${i.name}</b><br>₹${i.price} x ${i.quantity}</div>`;
+                return `<div style="background:#fff; padding:15px; margin-bottom:10px; border-radius:10px; border:1px solid #eee;">
+                    <b>${i.name}</b><br><span style="color:var(--primary);">₹${i.price} x ${i.quantity}</span>
+                </div>`;
             }).join('');
-            document.getElementById('total-price').innerText = 'Total: ₹' + total;
+            document.getElementById('total-price').innerText = 'Total Bill: ₹' + total;
         }
 
         async function placeOrder() {
             const name = document.getElementById('cust-name').value;
-            if(!name) return alert("Enter Name");
+            if(!name) return alert("Enter Your Name");
             await fetch(`${API}/orders`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ customerName: name, items: cart, totalAmount: cart.reduce((a,b)=>a+(b.price*b.quantity), 0) })
             });
             cart = []; localStorage.setItem('gulzar_cart', '[]');
+            localStorage.setItem('gulzar_name', name); // SAVE USER
             location.reload();
         }
 
-        async function loadOrders() {
+        function manualSearch() {
             const name = document.getElementById('view-name').value;
+            if(!name) return alert("Enter name");
+            localStorage.setItem('gulzar_name', name);
+            savedUser = name;
+            loadOrders(name);
+        }
+
+        function changeUser() {
+            localStorage.removeItem('gulzar_name');
+            savedUser = '';
+            document.getElementById('order-login-box').style.display = 'block';
+            document.getElementById('orders-display').style.display = 'none';
+        }
+
+        async function loadOrders(name) {
             const res = await fetch(`${API}/orders/${name}`);
             const data = await res.json();
-            document.getElementById('order-auth').style.display = 'none';
+            document.getElementById('order-login-box').style.display = 'none';
             document.getElementById('orders-display').style.display = 'block';
-            document.getElementById('order-list').innerHTML = data.reverse().map(o => `
+            const list = document.getElementById('order-list');
+            
+            if(data.length === 0) {
+                list.innerHTML = '<p style="text-align:center; padding:20px; color:gray;">No orders found for this name.</p>';
+                return;
+            }
+
+            list.innerHTML = data.reverse().map(o => `
                 <div class="order-card">
                     <span class="status-badge status-${o.status}">${o.status}</span>
-                    <b>Total Bill: ₹${o.totalAmount}</b><br>
-                    ${o.status !== 'Pending' ? `<div style="display:flex;gap:5px;margin-top:10px;">
-                        <button class="btn-primary" style="flex:1" onclick="loadLocalBill('${o._id}')">PRINT</button>
-                        <a href="/api/invoice/${o._id}" target="_blank" class="btn-primary" style="flex:1;text-decoration:none;text-align:center;background:#333;">BROWSER</a>
-                    </div>` : '<p style="color:orange; margin-top:5px;">Awaiting Approval</p>'}
+                    <b style="font-size:1.1rem;">₹${o.totalAmount}</b><br>
+                    <small style="color:gray;">${new Date(o.createdAt).toLocaleDateString()}</small><br>
+                    ${o.status !== 'Pending' ? 
+                        `<div style="display:flex;gap:5px;margin-top:10px;">
+                            <button class="btn-primary" style="flex:1" onclick="loadLocalBill('${o._id}')">PRINT</button>
+                            <a href="/api/invoice/${o._id}" target="_blank" class="btn-primary" style="flex:1;text-decoration:none;text-align:center;background:#333;font-size:0.8rem;">BROWSER</a>
+                        </div>` 
+                        : '<p style="color:orange; margin-top:5px; font-weight:bold; font-size:0.8rem;">Awaiting Store Approval</p>'}
                 </div>
             `).join('');
         }
@@ -174,15 +236,14 @@
         async function loadLocalBill(id) {
             const res = await fetch(`${API}/invoice/${id}`);
             const data = await res.json();
-            // This copies the pretty layout to our local overlay
             document.getElementById('bill-content').innerHTML = `
                 <div style="border:1px solid #eee; padding:20px; border-radius:10px; background:#fff;">
                     <h2 style="text-align:center; color:var(--primary);">${data.storeName}</h2>
-                    <p><b>Customer:</b> ${data.customerName}</p>
-                    <hr style="margin:10px 0;">
-                    ${data.items.map(i => `<p>${i.name} x${i.quantity} - ₹${i.price*i.quantity}</p>`).join('')}
-                    <h3 style="margin-top:15px;">Total: ₹${data.totalAmount}</h3>
-                    <p style="text-align:center; margin-top:15px; font-weight:bold;">${data.status}</p>
+                    <p style="margin-top:10px;"><b>Bill To:</b> ${data.customerName}</p>
+                    <hr style="margin:10px 0; border:0.5px solid #eee;">
+                    ${data.items.map(i => `<p style="display:flex;justify-content:space-between;margin-bottom:5px;"><span>${i.name} x${i.quantity}</span><span>₹${i.price*i.quantity}</span></p>`).join('')}
+                    <h3 style="margin-top:15px; border-top:2px solid #eee; padding-top:10px; display:flex; justify-content:space-between;"><span>Total:</span><span>₹${data.totalAmount}</span></h3>
+                    <p style="text-align:center; margin-top:20px; font-weight:bold; color:green;">${data.status}</p>
                     <button class="btn-primary" onclick="window.print()" style="margin-top:15px;">SAVE AS PDF</button>
                 </div>
             `;
