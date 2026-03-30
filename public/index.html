@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gulzar Hardware Store</title>
     
-    <!-- Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -29,7 +28,7 @@
         .card-price { color: var(--primary); font-weight: 700; margin-bottom: 10px; }
         .category-card { padding: 20px 10px; cursor: pointer; }
         .category-card i { font-size: 2rem; color: var(--primary); margin-bottom: 10px; }
-        .btn-primary { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 10px; width: 100%; font-size: 1rem; font-weight: 500; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 10px; width: 100%; font-size: 1rem; font-weight: 500; cursor: pointer; margin-top: 5px; }
         .cart-item { display: flex; background: var(--surface); padding: 12px; border-radius: 8px; margin-bottom: 10px; align-items: center; }
         .qty-controls { display: flex; align-items: center; gap: 10px; }
         .qty-btn { background: var(--bg-color); border: none; width: 28px; height: 28px; border-radius: 4px; font-size: 1.2rem; cursor: pointer; }
@@ -39,16 +38,19 @@
         .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
         .status-Pending { background: var(--warning); color: #000; } .status-Approved { background: var(--primary); color: #fff; } .status-Paid { background: var(--success); color: #fff; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface); display: flex; justify-content: space-around; padding: 10px 0; z-index: 20; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 0.75rem; position: relative; cursor: pointer; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 0.75rem; position: relative; cursor: pointer; padding: 5px 15px; }
         .nav-item i { font-size: 1.3rem; margin-bottom: 4px; }
         .nav-item.active { color: var(--primary); }
-        .badge { position: absolute; top: -5px; right: 5px; background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; display: none; }
+        .badge { position: absolute; top: 0px; right: 5px; background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; display: none; }
         .overlay-view { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 30; display: none; flex-direction: column; overflow-y: auto; }
         .overlay-view.show { display: flex; animation: slideUp 0.3s forwards; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .btn-back { background: transparent; border: none; font-size: 1.5rem; padding: 16px; text-align: left; color: var(--text-main); cursor: pointer; }
-        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; font-size: 0.9rem; display: none; z-index: 100; }
+        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; font-size: 0.9rem; display: none; z-index: 100; text-align: center; width: 80%; }
         .empty-state { text-align: center; color: var(--text-muted); margin-top: 50px; grid-column: span 2; }
+        
+        /* Debug Banner (Will hide if app works properly) */
+        #debug-banner { background: #ff7675; color: white; padding: 10px; text-align: center; font-size: 0.8rem; display: none; }
     </style>
 </head>
 <body>
@@ -57,25 +59,29 @@
         <h1>Gulzar Hardware</h1>
         <i class="fa-solid fa-bell"></i>
     </header>
+    
+    <div id="debug-banner">Connecting...</div>
 
     <main class="app-main">
-        <!-- Home Tab -->
+        <!-- Home -->
         <section id="tab-home" class="tab-content active">
             <div class="search-container">
                 <i class="fa-solid fa-search"></i>
                 <input type="text" id="search-input" placeholder="Search products...">
             </div>
             <div class="section-title">All Products</div>
-            <div id="products-grid" class="grid-layout"></div>
+            <div id="products-grid" class="grid-layout">
+                <p class="empty-state">Loading products...</p>
+            </div>
         </section>
 
-        <!-- Categories Tab -->
+        <!-- Categories -->
         <section id="tab-categories" class="tab-content">
             <div class="section-title">Categories</div>
             <div id="categories-grid" class="grid-layout categories-grid"></div>
         </section>
 
-        <!-- Cart Tab -->
+        <!-- Cart -->
         <section id="tab-cart" class="tab-content">
             <div class="section-title">Your Cart</div>
             <div id="cart-items-container"></div>
@@ -91,7 +97,7 @@
             </div>
         </section>
 
-        <!-- Orders Tab -->
+        <!-- Orders -->
         <section id="tab-orders" class="tab-content">
             <div class="order-login-container" id="order-login-container">
                 <p>Enter your name to view orders:</p>
@@ -128,78 +134,112 @@
     <div id="toast" class="toast">Success</div>
 
     <script>
-        // 👉 THIS IS THE FIX YOU WERE LOOKING FOR (I changed it for you!):
         const API_BASE_URL = '/api'; 
+        let state = { products:[], categories: [], cart: [], orders:[], customerName: '' };
 
-        let state = { products:[], categories: [], cart: [], orders:[], customerName: localStorage.getItem('customerName') || '' };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            setupNav();
-            loadCart();
-            fetchProducts();
-            fetchCategories();
-            if(state.customerName) {
-                document.getElementById('view-orders-name').value = state.customerName;
-                document.getElementById('customer-name').value = state.customerName;
-                fetchOrders(state.customerName);
+        // 1. SAFELY INITIALIZE APP
+        window.onload = function() {
+            try {
+                setupNav(); // Connect tabs instantly!
+                safeLoadStorage();
+                fetchProducts();
+                fetchCategories();
+                setupButtons();
+            } catch(e) {
+                const banner = document.getElementById('debug-banner');
+                banner.style.display = 'block';
+                banner.innerText = "Error loading: " + e.message;
             }
-            
-            document.getElementById('search-input').addEventListener('input', (e) => {
-                setTimeout(() => fetchProducts(e.target.value), 300);
-            });
-            document.getElementById('btn-checkout').addEventListener('click', handleCheckout);
-            document.getElementById('btn-fetch-orders').addEventListener('click', () => {
-                const name = document.getElementById('view-orders-name').value.trim();
-                if(name) { state.customerName = name; localStorage.setItem('customerName', name); fetchOrders(name); }
-            });
-        });
+        };
 
+        // 2. TABS LOGIC
         function setupNav() {
             const tabs = document.querySelectorAll('.tab-content');
-            document.querySelectorAll('.nav-item').forEach(item => {
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            navItems.forEach(item => {
                 item.addEventListener('click', () => {
-                    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                    item.classList.add('active');
-                    const target = item.getAttribute('data-target');
+                    // Remove active from all
+                    navItems.forEach(n => n.classList.remove('active'));
                     tabs.forEach(t => t.classList.remove('active'));
-                    document.getElementById(target).classList.add('active');
-                    if(target === 'tab-cart') renderCart();
+                    
+                    // Add active to clicked
+                    item.classList.add('active');
+                    const targetId = item.getAttribute('data-target');
+                    document.getElementById(targetId).classList.add('active');
+                    
+                    // Extra tasks
+                    if(targetId === 'tab-cart') renderCart();
                 });
             });
         }
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg; t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 2500);
+        // 3. SAFE LOCAL STORAGE
+        function safeLoadStorage() {
+            try {
+                const savedName = localStorage.getItem('customerName');
+                if(savedName) {
+                    state.customerName = savedName;
+                    document.getElementById('view-orders-name').value = savedName;
+                    document.getElementById('customer-name').value = savedName;
+                    fetchOrders(savedName);
+                }
+                const savedCart = localStorage.getItem('cart');
+                if(savedCart) {
+                    state.cart = JSON.parse(savedCart);
+                    updateBadge();
+                }
+            } catch(e) {
+                // If storage corrupted, clear it to prevent app freeze
+                localStorage.clear();
+                state.cart =[];
+            }
         }
 
+        // 4. DATA FETCHING
         async function fetchProducts(query = '', cat = '') {
             try {
                 let url = `${API_BASE_URL}/products?`;
                 if(query) url += `search=${query}&`;
                 if(cat) url += `category=${cat}`;
+                
                 const res = await fetch(url);
+                if(!res.ok) throw new Error("Server Error");
                 state.products = await res.json();
                 renderProducts(state.products);
-            } catch (err) { console.log(err); }
+            } catch (err) {
+                document.getElementById('products-grid').innerHTML = `<p class='empty-state'>Failed to load products.</p>`;
+            }
         }
 
         async function fetchCategories() {
             try {
                 const res = await fetch(`${API_BASE_URL}/categories`);
-                state.categories = await res.json();
-                renderCategories(state.categories);
+                if(res.ok) {
+                    state.categories = await res.json();
+                    renderCategories(state.categories);
+                }
             } catch (err) {}
         }
 
+        // 5. RENDERING
         function renderProducts(products) {
             const grid = document.getElementById('products-grid');
             grid.innerHTML = '';
+            if(products.length === 0) {
+                grid.innerHTML = '<p class="empty-state">No products found.</p>';
+                return;
+            }
             products.forEach(p => {
-                const div = document.createElement('div'); div.className = 'card';
+                const div = document.createElement('div'); 
+                div.className = 'card';
                 div.onclick = () => showProductDetails(p._id);
-                div.innerHTML = `<img src="${p.image}"><div class="card-title">${p.name}</div><div class="card-price">₹${p.price}</div><button class="btn-primary" onclick="event.stopPropagation(); addToCart('${p._id}', '${p.name}', ${p.price})">Add</button>`;
+                div.innerHTML = `
+                    <img src="${p.image}">
+                    <div class="card-title">${p.name}</div>
+                    <div class="card-price">₹${p.price}</div>
+                    <button class="btn-primary" onclick="event.stopPropagation(); addToCart('${p._id}', '${p.name}', ${p.price})">Add</button>
+                `;
                 grid.appendChild(div);
             });
         }
@@ -218,25 +258,29 @@
         window.showProductDetails = function(id) {
             const p = state.products.find(x => x._id === id);
             document.getElementById('details-content').innerHTML = `
-                <img src="${p.image}" style="width:100%; height:200px; object-fit:contain; margin-bottom:15px;">
+                <img src="${p.image}" style="width:100%; height:200px; object-fit:contain; margin-bottom:15px; border-radius:8px;">
                 <h2>${p.name}</h2><h3 style="color:var(--primary); margin:10px 0;">₹${p.price}</h3>
-                <p style="color:var(--text-muted); margin-bottom:20px;">${p.description || 'No details'}</p>
-                <button class="btn-primary" onclick="addToCart('${p._id}', '${p.name}', ${p.price})">Add to Cart</button>`;
+                <p style="color:var(--text-muted); margin-bottom:20px;">${p.description || 'No description available'}</p>
+                <button class="btn-primary" onclick="addToCart('${p._id}', '${p.name}', ${p.price})">Add to Cart</button>
+            `;
             document.getElementById('view-product-details').classList.add('show');
         }
 
-        function loadCart() { const s = localStorage.getItem('cart'); if(s) { state.cart = JSON.parse(s); updateBadge(); } }
-        function saveCart() { localStorage.setItem('cart', JSON.stringify(state.cart)); updateBadge(); }
+        // 6. CART SYSTEM
         function updateBadge() { 
             const count = state.cart.reduce((a,b)=>a+b.quantity,0);
             const badge = document.getElementById('cart-badge');
-            badge.innerText = count; badge.style.display = count > 0 ? 'inline-block' : 'none';
+            badge.innerText = count; 
+            badge.style.display = count > 0 ? 'inline-block' : 'none';
         }
 
         window.addToCart = function(id, name, price) {
             const ex = state.cart.find(i => i.productId === id);
             if(ex) ex.quantity++; else state.cart.push({ productId: id, name, price, quantity: 1 });
-            saveCart(); showToast("Added to Cart!"); document.getElementById('view-product-details').classList.remove('show');
+            localStorage.setItem('cart', JSON.stringify(state.cart));
+            updateBadge(); 
+            showToast("Added to Cart!"); 
+            document.getElementById('view-product-details').classList.remove('show');
         }
 
         window.updateQty = function(id, d) {
@@ -244,7 +288,9 @@
             if(!i) return;
             i.quantity += d;
             if(i.quantity <= 0) state.cart = state.cart.filter(x => x.productId !== id);
-            saveCart(); renderCart();
+            localStorage.setItem('cart', JSON.stringify(state.cart));
+            renderCart();
+            updateBadge();
         }
 
         function renderCart() {
@@ -259,27 +305,46 @@
             state.cart.forEach(i => {
                 total += (i.price * i.quantity);
                 cont.innerHTML += `<div class="cart-item"><div style="flex:1"><b>${i.name}</b><br><span style="color:var(--primary)">₹${i.price}</span></div>
-                <div class="qty-controls"><button class="qty-btn" onclick="updateQty('${i.productId}', -1)">-</button>${i.quantity}<button class="qty-btn" onclick="updateQty('${i.productId}', 1)">+</button></div></div>`;
+                <div class="qty-controls"><button class="qty-btn" onclick="updateQty('${i.productId}', -1)">-</button><span style="margin:0 5px;">${i.quantity}</span><button class="qty-btn" onclick="updateQty('${i.productId}', 1)">+</button></div></div>`;
             });
             document.getElementById('cart-total').innerText = '₹' + total;
         }
 
-        async function handleCheckout() {
-            const name = document.getElementById('customer-name').value.trim();
-            if(!name) return showToast("Enter name");
-            const total = state.cart.reduce((a,b)=>a+(b.price*b.quantity),0);
-            localStorage.setItem('customerName', name); state.customerName = name;
-            document.getElementById('btn-checkout').innerText = "Wait...";
-            try {
-                await fetch(`${API_BASE_URL}/orders`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ customerName: name, items: state.cart, totalAmount: total })
-                });
-                state.cart = []; saveCart(); renderCart();
-                document.querySelector(`.nav-item[data-target='tab-orders']`).click();
-                fetchOrders(name); showToast("Order Placed!");
-            } catch(e) { showToast("Error placing order"); }
-            document.getElementById('btn-checkout').innerText = "Place Order";
+        // 7. ORDERS & BUTTONS
+        function setupButtons() {
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                setTimeout(() => fetchProducts(e.target.value), 300);
+            });
+            
+            document.getElementById('btn-checkout').addEventListener('click', async () => {
+                const name = document.getElementById('customer-name').value.trim();
+                if(!name) return showToast("Enter your name");
+                const total = state.cart.reduce((a,b)=>a+(b.price*b.quantity),0);
+                
+                document.getElementById('btn-checkout').innerText = "Placing...";
+                try {
+                    await fetch(`${API_BASE_URL}/orders`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ customerName: name, items: state.cart, totalAmount: total })
+                    });
+                    state.cart = []; 
+                    localStorage.setItem('cart', '[]');
+                    localStorage.setItem('customerName', name);
+                    renderCart(); updateBadge();
+                    document.querySelector(`.nav-item[data-target='tab-orders']`).click();
+                    fetchOrders(name); 
+                    showToast("Order Placed!");
+                } catch(e) { showToast("Error placing order"); }
+                document.getElementById('btn-checkout').innerText = "Place Order";
+            });
+
+            document.getElementById('btn-fetch-orders').addEventListener('click', () => {
+                const name = document.getElementById('view-orders-name').value.trim();
+                if(name) { 
+                    localStorage.setItem('customerName', name); 
+                    fetchOrders(name); 
+                }
+            });
         }
 
         async function fetchOrders(name) {
@@ -289,6 +354,7 @@
                 document.getElementById('order-login-container').style.display = 'none';
                 document.getElementById('orders-list-container').style.display = 'block';
                 const list = document.getElementById('orders-list'); list.innerHTML = '';
+                
                 if(state.orders.length===0) list.innerHTML = '<p class="empty-state">No orders.</p>';
                 state.orders.forEach(o => {
                     list.innerHTML += `<div class="order-card"><div style="display:flex;justify-content:space-between;margin-bottom:10px;">
@@ -310,903 +376,18 @@
                     <h2 style="text-align:center;">${data.storeName}</h2><p style="text-align:center;font-size:0.8rem;color:gray;">ID: ${data.orderId}</p>
                     <div style="margin:15px 0;"><b>Customer:</b> ${data.customerName}<br><b>Status:</b> ${data.status}</div>
                     <div style="margin-bottom:15px;">${items}</div>
-                      }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* UI Elements */
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--text-main);
-        }
-
-        .search-container {
-            background: var(--surface);
-            border-radius: 8px;
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .search-container i {
-            color: var(--text-muted);
-            margin-right: 10px;
-        }
-
-        .search-container input {
-            border: none;
-            outline: none;
-            width: 100%;
-            font-size: 1rem;
-            background: transparent;
-        }
-
-        /* Grid Layouts */
-        .grid-layout {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-
-        .categories-grid {
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        }
-
-        /* Cards */
-        .card {
-            background: var(--surface);
-            border-radius: 12px;
-            padding: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            text-align: center;
-            transition: transform 0.2s;
-            cursor: pointer;
-        }
-
-        .card:active {
-            transform: scale(0.96);
-        }
-
-        .card img {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            background: #eee;
-        }
-
-        .card-title {
-            font-size: 0.9rem;
-            font-weight: 500;
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .card-price {
-            color: var(--primary);
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .category-card {
-            padding: 20px 10px;
-        }
-
-        .category-card i {
-            font-size: 2rem;
-            color: var(--primary);
-            margin-bottom: 10px;
-        }
-
-        /* Buttons */
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px;
-            width: 100%;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-primary:active {
-            background: var(--primary-dark);
-        }
-
-        /* Cart & Forms */
-        .cart-item {
-            display: flex;
-            background: var(--surface);
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            align-items: center;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .cart-item-info {
-            flex: 1;
-            margin-left: 10px;
-        }
-
-        .qty-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .qty-btn {
-            background: var(--bg-color);
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 4px;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-
-        .checkout-form {
-            margin-top: 20px;
-        }
-
-        .checkout-form input, .order-login-container input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            margin-bottom: 10px;
-            font-size: 1rem;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 1.1rem;
-            margin-top: 15px;
-            margin-bottom: 15px;
-            padding-top: 15px;
-            border-top: 1px dashed var(--border);
-        }
-
-        /* Orders */
-        .order-card {
-            background: var(--surface);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-        .status-Pending { background: var(--warning); color: #000; }
-        .status-Approved { background: var(--primary); color: #fff; }
-        .status-Paid { background: var(--success); color: #fff; }
-
-        /* Bottom Nav */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: var(--surface);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            z-index: 20;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .nav-item i {
-            font-size: 1.3rem;
-            margin-bottom: 4px;
-            transition: color 0.3s;
-        }
-
-        .nav-item.active {
-            color: var(--primary);
-        }
-
-        .badge {
-            position: absolute;
-            top: -5px;
-            right: 5px;
-            background: var(--danger);
-            color: white;
-            font-size: 0.6rem;
-            padding: 2px 6px;
-            border-radius: 10px;
-            display: none;
-        }
-
-        /* Overlays (Details / Invoice) */
-        .overlay-view {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--bg-color);
-            z-index: 30;
-            display: none;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-
-        .overlay-view.show {
-            display: flex;
-            animation: slideUp 0.3s forwards;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-
-        .btn-back {
-            background: transparent;
-            border: none;
-            font-size: 1.5rem;
-            padding: 16px;
-            text-align: left;
-            color: var(--text-main);
-            cursor: pointer;
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            display: none;
-            z-index: 100;
-        }
-
-        /* Utilities */
-        .empty-state {
-            text-align: center;
-            color: var(--text-muted);
-            margin-top: 50px;
-            grid-column: span 2;
-        }
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            opacity: 0.5;
-        }
-        .alert-banner {
-            background: #ffeaa7;
-            color: #d63031;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .invoice-box {
-            background: #fff;
-            margin: 20px;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-    </style>
-</head>
-<body>
-
-    <!-- =========================================
-         HTML STRUCTURE
-         ========================================= -->
-
-    <!-- Top App Bar -->
-    <header class="app-header">
-        <h1 id="header-title">Gulzar Hardware</h1>
-        <div class="header-actions">
-            <i class="fa-solid fa-bell"></i>
-        </div>
-    </header>
-
-    <!-- Main Content Area (Tabs) -->
-    <main class="app-main" id="app-main">
-
-        <!-- 1. HOME TAB -->
-        <section id="tab-home" class="tab-content active">
-            <div class="search-container">
-                <i class="fa-solid fa-search"></i>
-                <input type="text" id="search-input" placeholder="Search products...">
-            </div>
-            <div class="section-title">All Products</div>
-            <div id="products-grid" class="grid-layout">
-                <!-- Products injected via JS -->
-            </div>
-        </section>
-
-        <!-- 2. CATEGORIES TAB -->
-        <section id="tab-categories" class="tab-content">
-            <div class="section-title">Categories</div>
-            <div id="categories-grid" class="grid-layout categories-grid">
-                <!-- Categories injected via JS -->
-            </div>
-        </section>
-
-        <!-- 3. CART TAB -->
-        <section id="tab-cart" class="tab-content">
-            <div class="section-title">Your Cart</div>
-            <div id="cart-items-container"></div>
-            
-            <div class="cart-summary" id="cart-summary" style="display: none;">
-                <div class="summary-row">
-                    <span>Total Amount:</span>
-                    <strong id="cart-total">₹0</strong>
-                </div>
-                <div class="checkout-form">
-                    <input type="text" id="customer-name" placeholder="Enter Your Name for Order" required>
-                    <button id="btn-checkout" class="btn-primary">Place Order</button>
-                </div>
-            </div>
-            <div id="empty-cart-msg" class="empty-state">
-                <i class="fa-solid fa-cart-arrow-down"></i>
-                <p>Your cart is empty.</p>
-            </div>
-        </section>
-
-        <!-- 4. ORDERS TAB -->
-        <section id="tab-orders" class="tab-content">
-            <div id="unpaid-reminder" class="alert-banner" style="display: none;">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>You have unpaid orders! Please complete payment at store.</span>
-            </div>
-            
-            <div class="order-login-container" id="order-login-container">
-                <p style="margin-bottom:10px;">Enter your name to view your orders:</p>
-                <input type="text" id="view-orders-name" placeholder="Your Name">
-                <button id="btn-fetch-orders" class="btn-primary">View Orders</button>
-            </div>
-
-            <div id="orders-list-container" style="display: none;">
-                <div class="section-title">Order History</div>
-                <div id="orders-list"></div>
-            </div>
-        </section>
-
-        <!-- 5. PRODUCT DETAILS OVERLAY -->
-        <section id="view-product-details" class="overlay-view">
-            <button class="btn-back" id="btn-close-details"><i class="fa-solid fa-arrow-left"></i></button>
-            <div id="details-content" style="padding: 0 20px 20px 20px;"></div>
-        </section>
-
-        <!-- 6. INVOICE MODAL OVERLAY -->
-        <section id="view-invoice" class="overlay-view">
-            <button class="btn-back" id="btn-close-invoice"><i class="fa-solid fa-xmark"></i></button>
-            <div id="invoice-content" class="invoice-box"></div>
-        </section>
-
-    </main>
-
-    <!-- Bottom Navigation Bar -->
-    <nav class="bottom-nav">
-        <div class="nav-item active" data-target="tab-home">
-            <i class="fa-solid fa-house"></i>
-            <span>Home</span>
-        </div>
-        <div class="nav-item" data-target="tab-categories">
-            <i class="fa-solid fa-border-all"></i>
-            <span>Categories</span>
-        </div>
-        <div class="nav-item cart-nav" data-target="tab-cart">
-            <i class="fa-solid fa-cart-shopping"></i>
-            <span class="badge" id="cart-badge">0</span>
-            <span>Cart</span>
-        </div>
-        <div class="nav-item" data-target="tab-orders">
-            <i class="fa-solid fa-receipt"></i>
-            <span>Orders</span>
-        </div>
-    </nav>
-
-    <!-- Notification Toast -->
-    <div id="toast" class="toast">Action Successful</div>
-
-
-    <!-- =========================================
-         JAVASCRIPT LOGIC
-         ========================================= -->
-    <script>
-        // --- CONFIGURATION ---
-        const API_BASE_URL = 'http://localhost:3000/api'; 
-
-        // --- MOCK DATA (Fallback if backend is offline) ---
-        const MOCK_CATEGORIES =[
-            { name: 'Tools', icon: 'fa-wrench' },
-            { name: 'Plumbing', icon: 'fa-sink' },
-            { name: 'Electrical', icon: 'fa-plug' },
-            { name: 'Paints', icon: 'fa-paint-roller' }
-        ];
-        
-        const MOCK_PRODUCTS =[
-            { _id: '1', name: 'Stanley Hammer', category: 'Tools', price: 450, image: 'https://via.placeholder.com/150/FF7B00/FFFFFF?text=Hammer', description: 'Heavy duty steel hammer. Highly durable.' },
-            { _id: '2', name: 'Drill Machine', category: 'Tools', price: 2500, image: 'https://via.placeholder.com/150/FF7B00/FFFFFF?text=Drill', description: '750W power drill with variable speed.' },
-            { _id: '3', name: 'PVC Pipe (1 inch)', category: 'Plumbing', price: 120, image: 'https://via.placeholder.com/150/FF7B00/FFFFFF?text=PVC', description: '10ft Durable PVC water pipe.' },
-            { _id: '4', name: 'Copper Wire', category: 'Electrical', price: 900, image: 'https://via.placeholder.com/150/FF7B00/FFFFFF?text=Wire', description: '90m insulated copper wire bundle.' },
-            { _id: '5', name: 'Asian Paints', category: 'Paints', price: 350, image: 'https://via.placeholder.com/150/FF7B00/FFFFFF?text=Paint', description: 'Premium emulsion wall paint 1L.' }
-        ];
-
-        let mockOrders =[]; // Stores local orders if no DB
-
-        // --- STATE MANAGEMENT ---
-        let state = {
-            products:[],
-            categories: [],
-            cart: [],
-            orders:[],
-            customerName: localStorage.getItem('customerName') || ''
-        };
-
-        // --- DOM ELEMENTS ---
-        const els = {
-            navItems: document.querySelectorAll('.nav-item'),
-            tabs: document.querySelectorAll('.tab-content'),
-            productsGrid: document.getElementById('products-grid'),
-            categoriesGrid: document.getElementById('categories-grid'),
-            searchInput: document.getElementById('search-input'),
-            cartContainer: document.getElementById('cart-items-container'),
-            cartSummary: document.getElementById('cart-summary'),
-            cartTotal: document.getElementById('cart-total'),
-            emptyCartMsg: document.getElementById('empty-cart-msg'),
-            cartBadge: document.getElementById('cart-badge'),
-            customerNameInput: document.getElementById('customer-name'),
-            btnCheckout: document.getElementById('btn-checkout'),
-            orderLoginContainer: document.getElementById('order-login-container'),
-            viewOrdersName: document.getElementById('view-orders-name'),
-            btnFetchOrders: document.getElementById('btn-fetch-orders'),
-            ordersListContainer: document.getElementById('orders-list-container'),
-            ordersList: document.getElementById('orders-list'),
-            unpaidReminder: document.getElementById('unpaid-reminder'),
-            viewProductOverlay: document.getElementById('view-product-details'),
-            btnCloseDetails: document.getElementById('btn-close-details'),
-            detailsContent: document.getElementById('details-content'),
-            viewInvoiceOverlay: document.getElementById('view-invoice'),
-            btnCloseInvoice: document.getElementById('btn-close-invoice'),
-            invoiceContent: document.getElementById('invoice-content'),
-            toast: document.getElementById('toast')
-        };
-
-        // --- INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', init);
-
-        async function init() {
-            setupNavigation();
-            setupEventListeners();
-            loadCart();
-            
-            await fetchCategories();
-            await fetchProducts();
-            
-            if (state.customerName) {
-                els.viewOrdersName.value = state.customerName;
-                els.customerNameInput.value = state.customerName;
-                fetchOrders(state.customerName);
-            }
-        }
-
-        // --- NAVIGATION & UI LOGIC ---
-        function setupNavigation() {
-            els.navItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    els.navItems.forEach(nav => nav.classList.remove('active'));
-                    item.classList.add('active');
-                    
-                    const targetId = item.getAttribute('data-target');
-                    els.tabs.forEach(tab => {
-                        tab.classList.remove('active');
-                        if (tab.id === targetId) tab.classList.add('active');
-                    });
-
-                    if (targetId === 'tab-cart') renderCart();
-                });
-            });
-
-            els.btnCloseDetails.addEventListener('click', () => els.viewProductOverlay.classList.remove('show'));
-            els.btnCloseInvoice.addEventListener('click', () => els.viewInvoiceOverlay.classList.remove('show'));
-        }
-
-        function setupEventListeners() {
-            let searchTimeout;
-            els.searchInput.addEventListener('input', (e) => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => fetchProducts(e.target.value), 300);
-            });
-
-            els.btnCheckout.addEventListener('click', handleCheckout);
-            els.btnFetchOrders.addEventListener('click', () => {
-                const name = els.viewOrdersName.value.trim();
-                if (name) {
-                    localStorage.setItem('customerName', name);
-                    state.customerName = name;
-                    els.customerNameInput.value = name;
-                    fetchOrders(name);
-                } else {
-                    showToast("Please enter a name");
-                }
-            });
-        }
-
-        function goToHome() {
-            document.querySelector('.nav-item[data-target="tab-home"]').click();
+                    <h3 style="display:flex;justify-content:space-between;">Total: <span>₹${data.totalAmount}</span></h3>
+                    <button class="btn-primary" style="margin-top:20px;" onclick="window.print()">Save PDF</button>
+                `;
+                document.getElementById('view-invoice').classList.add('show');
+            } catch(e) { showToast("Error loading bill"); }
         }
 
         function showToast(msg) {
-            els.toast.innerText = msg;
-            els.toast.style.display = 'block';
-            els.toast.style.animation = 'fadeIn 0.3s forwards';
-            setTimeout(() => {
-                els.toast.style.animation = 'none';
-                els.toast.style.display = 'none';
-            }, 3000);
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2500);
         }
-
-        // --- API & RENDERING ---
-        async function fetchProducts(query = '', category = '') {
-            try {
-                let url = `${API_BASE_URL}/products?`;
-                if (query) url += `search=${query}&`;
-                if (category) url += `category=${category}`;
-                
-                const res = await fetch(url);
-                if (!res.ok) throw new Error("Backend offline");
-                state.products = await res.json();
-            } catch (err) {
-                // FALLBACK TO MOCK DATA
-                console.warn("Using mock products (Backend offline)");
-                state.products = MOCK_PRODUCTS.filter(p => 
-                    (query === '' || p.name.toLowerCase().includes(query.toLowerCase())) &&
-                    (category === '' || p.category === category)
-                );
-            }
-            renderProducts(state.products);
-        }
-
-        async function fetchCategories() {
-            try {
-                const res = await fetch(`${API_BASE_URL}/categories`);
-                if (!res.ok) throw new Error("Backend offline");
-                state.categories = await res.json();
-            } catch (err) {
-                // FALLBACK TO MOCK DATA
-                console.warn("Using mock categories (Backend offline)");
-                state.categories = MOCK_CATEGORIES;
-            }
-            renderCategories(state.categories);
-        }
-
-        function renderProducts(products) {
-            els.productsGrid.innerHTML = '';
-            if (products.length === 0) {
-                els.productsGrid.innerHTML = '<p class="empty-state">No products found.</p>';
-                return;
-            }
-
-            products.forEach(p => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.onclick = () => showProductDetails(p._id);
-                card.innerHTML = `
-                    <img src="${p.image}" alt="${p.name}">
-                    <div class="card-title">${p.name}</div>
-                    <div class="card-price">₹${p.price}</div>
-                    <button class="btn-primary" onclick="event.stopPropagation(); addToCart('${p._id}', '${p.name.replace(/'/g, "\\'")}', ${p.price})">Add</button>
-                `;
-                els.productsGrid.appendChild(card);
-            });
-        }
-
-        function renderCategories(categories) {
-            els.categoriesGrid.innerHTML = '';
-            
-            const allCard = document.createElement('div');
-            allCard.className = 'card category-card';
-            allCard.innerHTML = `<i class="fa-solid fa-layer-group"></i><div class="card-title">All Items</div>`;
-            allCard.onclick = () => { fetchProducts(); goToHome(); };
-            els.categoriesGrid.appendChild(allCard);
-
-            categories.forEach(c => {
-                const card = document.createElement('div');
-                card.className = 'card category-card';
-                card.innerHTML = `<i class="fa-solid ${c.icon}"></i><div class="card-title">${c.name}</div>`;
-                card.onclick = () => { fetchProducts('', c.name); goToHome(); };
-                els.categoriesGrid.appendChild(card);
-            });
-        }
-
-        window.showProductDetails = function(id) {
-            const product = state.products.find(p => p._id === id);
-            if (!product) return;
-            
-            els.detailsContent.innerHTML = `
-                <img src="${product.image}" style="width:100%; height:250px; object-fit:contain; border-radius:8px; margin-bottom:15px; background:#fff;">
-                <h2 style="margin-bottom:10px;">${product.name}</h2>
-                <div style="color:var(--primary); font-size:1.5rem; font-weight:bold; margin-bottom:15px;">₹${product.price}</div>
-                <div style="background:var(--surface); padding:15px; border-radius:8px; margin-bottom:20px;">
-                    <p style="color:var(--text-muted); line-height:1.6;">${product.description || 'No description available.'}</p>
-                </div>
-                <button class="btn-primary" style="padding:15px; font-size:1.1rem;" onclick="addToCart('${product._id}', '${product.name.replace(/'/g, "\\'")}', ${product.price})">
-                    <i class="fa-solid fa-cart-plus"></i> Add to Cart
-                </button>
-            `;
-            els.viewProductOverlay.classList.add('show');
-        };
-
-        // --- CART SYSTEM ---
-        function loadCart() {
-            const saved = localStorage.getItem('hardwareCart');
-            if (saved) {
-                state.cart = JSON.parse(saved);
-                updateCartBadge();
-            }
-        }
-
-        function saveCart() {
-            localStorage.setItem('hardwareCart', JSON.stringify(state.cart));
-        }
-
-        function updateCartBadge() {
-            const count = state.cart.reduce((sum, item) => sum + item.quantity, 0);
-            els.cartBadge.innerText = count;
-            els.cartBadge.style.display = count > 0 ? 'inline-block' : 'none';
-        }
-
-        window.addToCart = function(id, name, price) {
-            const existing = state.cart.find(item => item.productId === id);
-            if (existing) existing.quantity++;
-            else state.cart.push({ productId: id, name, price, quantity: 1 });
-            
-            saveCart();
-            updateCartBadge();
-            showToast("Added to Cart!");
-            els.viewProductOverlay.classList.remove('show');
-        };
-
-        window.updateCartQty = function(id, delta) {
-            const item = state.cart.find(i => i.productId === id);
-            if (!item) return;
-            
-            item.quantity += delta;
-            if (item.quantity <= 0) state.cart = state.cart.filter(i => i.productId !== id);
-            
-            saveCart();
-            updateCartBadge();
-            renderCart();
-        };
-
-        function renderCart() {
-            els.cartContainer.innerHTML = '';
-            if (state.cart.length === 0) {
-                els.emptyCartMsg.style.display = 'block';
-                els.cartSummary.style.display = 'none';
-                return;
-            }
-            
-            els.emptyCartMsg.style.display = 'none';
-            els.cartSummary.style.display = 'block';
-            
-            let total = 0;
-            state.cart.forEach(item => {
-                total += (item.price * item.quantity);
-                const div = document.createElement('div');
-                div.className = 'cart-item';
-                div.innerHTML = `
-                    <div class="cart-item-info">
-                        <div style="font-weight:500; margin-bottom:4px;">${item.name}</div>
-                        <div style="color:var(--primary); font-weight:700;">₹${item.price}</div>
-                    </div>
-                    <div class="qty-controls">
-                        <button class="qty-btn" onclick="updateCartQty('${item.productId}', -1)">-</button>
-                        <span style="font-weight:500; width:20px; text-align:center;">${item.quantity}</span>
-                        <button class="qty-btn" onclick="updateCartQty('${item.productId}', 1)">+</button>
-                    </div>
-                `;
-                els.cartContainer.appendChild(div);
-            });
-            els.cartTotal.innerText = `₹${total}`;
-        }
-
-        // --- CHECKOUT & ORDERS ---
-        async function handleCheckout() {
-            const name = els.customerNameInput.value.trim();
-            if (!name) return showToast("Please enter your name");
-            if (state.cart.length === 0) return;
-
-            let total = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-            localStorage.setItem('customerName', name);
-            state.customerName = name;
-            els.viewOrdersName.value = name;
-
-            const orderData = { customerName: name, items: state.cart, totalAmount: total, status: 'Approved', createdAt: new Date().toISOString() }; // Mock auto-approves for demo
-
-            els.btnCheckout.innerText = "Placing Order...";
-            
-            try {
-                const res = await fetch(`${API_BASE_URL}/orders`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(orderData)
-                });
-                if (!res.ok) throw new Error("Backend offline");
-            } catch (err) {
-                // FALLBACK: Save locally
-                orderData._id = 'ORD' + Math.floor(Math.random() * 10000);
-                mockOrders.push(orderData);
-            }
-            
-            setTimeout(() => {
-                els.btnCheckout.innerText = "Place Order";
-                showToast("Order Placed Successfully!");
-                state.cart =[];
-                saveCart();
-                updateCartBadge();
-                renderCart();
-                fetchOrders(name);
-                document.querySelector('.nav-item[data-target="tab-orders"]').click();
-            }, 800);
-        }
-
-        async function fetchOrders(name) {
-            try {
-                const res = await fetch(`${API_BASE_URL}/orders/${name}`);
-                if (!res.ok) throw new Error("Backend offline");
-                state.orders = await res.json();
-            } catch (err) {
-                // FALLBACK
-                state.orders = mockOrders.filter(o => o.customerName.toLowerCase() === name.toLowerCase());
-            }
-            renderOrders(state.orders);
-        }
-
-        function renderOrders(orders) {
-            els.orderLoginContainer.style.display = 'none';
-            els.ordersListContainer.style.display = 'block';
-            els.ordersList.innerHTML = '';
-            
-            let hasUnpaid = false;
-
-            if (orders.length === 0) {
-                els.ordersList.innerHTML = '<p class="empty-state">No order history found.</p>';
-            } else {
-                // Reverse to show newest first
-                [...orders].reverse().forEach(o => {
-                    if (o.status === 'Approved') hasUnpaid = true;
-                    
-                    const dateStr = new Date(o.createdAt).toLocaleString();
-                    const card = document.createElement('div');
-                    card.className = 'order-card';
-                    card.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
-                            <strong style="font-size:0.85rem; color:var(--text-muted);">${dateStr}</strong>
-                            <span class="status-badge status-${o.status}">${o.status}</span>
-                        </div>
-                        <div style="margin-bottom:15px; font-weight:500;">
-                            Items: ${o.items.length} | Total: <span style="color:var(--primary);">₹${o.totalAmount}</span>
-                        </div>
-                        ${
-                            o.status !== 'Pending' 
-                            ? `<button class="btn-primary" style="padding:10px; font-size:0.9rem;" onclick="viewInvoice('${o._id}')"><i class="fa-solid fa-file-invoice"></i> View Bill</button>`
-                            : `<div style="text-align:center; padding:10px; background:var(--bg-color); border-radius:8px; font-size:0.85rem; color:var(--text-muted);">Waiting for store approval</div>`
-                        }
-                    `;
-                    els.ordersList.appendChild(card);
-                });
-            }
-            els.unpaidReminder.style.display = hasUnpaid ? 'flex' : 'none';
-        }
-
-        // --- INVOICE / BILL SYSTEM ---
-        window.viewInvoice = async function(orderId) {
-            let invoiceData = null;
-            try {
-                const res = await fetch(`${API_BASE_URL}/invoice/${orderId}`);
-                if (!res.ok) throw new Error("Backend offline");
-                invoiceData = await res.json();
-            } catch(err) {
-                // FALLBACK
-                const order = mockOrders.find(o => o._id === orderId);
-                if (order) {
-                    invoiceData = {
-                        storeName: "Gulzar Hardware Store",
-                        orderId: order._id,
-                        customerName: order.customerName,
-                        items: order.items,
-                        totalAmount: order.totalAmount,
-                        status: order.status,
-                        date: order.createdAt
-                    };
-                } else {
-                    return showToast("Invoice not found.");
-                }
-            }
-
-            let itemsHtml = invoiceData.items.map(i => `
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
-                    <span>${i.name} <strong>x${i.quantity}</strong></span>
-                    <span>₹${i.price * i.quantity}</span>
-                </div>
-            `).join('');
-
-            els.invoiceContent.innerHTML = `
-                <div style="text-align:center; margin-bottom:20px; border-bottom:2px solid var(--border); padding-bottom:15px;">
-                    <h2 style="color:var(--text-main); margin-bottom:5px;">${invoiceData.storeName}</h2>
-                    <p style="font-size:0.75rem; color:var(--text-muted);">Order ID: ${invoiceData.orderId}</p>
-                </div>
-                
-                <div style="margin-bottom:20px; font-size:0.9rem; line-height:1.6;">
-                    <strong>Customer:</strong> ${invoiceData.customerName}<br>
-                    <strong>Date:</strong> ${new Date(invoiceData.date).toLocaleString()}<br>
-                    <strong>Status:</strong> <span class="status-badge status-${invoiceData.status}">${invoiceData.status}</span>
-                </div>
-                
-                <div style="margin-bottom:20px;">
-                    <h4 style="margin-bottom:15px; color:var(--text-muted);">Items Purchased</h4>
-                    ${itemsHtml}
-                </div>
-                
-                <div style="display:flex; justify-content:space-between; font-size:1.3rem; font-weight:bold; background:var(--bg-color); padding:15px; border-radius:8px;">
-                    <span>Total Amount:</span>
-                    <span style="color:var(--primary);">₹${invoiceData.totalAmount}</span>
-                </div>
-                
-                ${invoiceData.status === 'Approved' 
-                    ? `<div style="margin-top:20px; text-align:center; color:var(--danger); font-weight:500; background:#ffeaa7; padding:10px; border-radius:8px;">
-                          <i class="fa-solid fa-circle-exclamation"></i> Payment of ₹${invoiceData.totalAmount} is due at the counter.
-                       </div>` 
-                    : `<div style="margin-top:20px; text-align:center; color:var(--success); font-weight:bold;"><i class="fa-solid fa-circle-check"></i> Paid successfully</div>`
-                }
-                
-                <button class="btn-primary" style="margin-top:20px; background:var(--text-main);" onclick="window.print()">
-                    <i class="fa-solid fa-print"></i> Print / Save PDF
-                </button>
-            `;
-            
-            els.viewInvoiceOverlay.classList.add('show');
-        };
     </script>
 </body>
 </html>
