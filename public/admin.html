@@ -16,14 +16,11 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        
-        /* PRICE ROW FIX */
         .price-display { color: var(--primary); font-weight: bold; display: flex; align-items: center; margin-top: 5px; }
-        .rs-icon { margin-right: 12px; color: #888; font-weight: normal; }
-
+        .rs-icon { margin-right: 12px; color: #888; }
         input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
-        .btn-primary { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 12px; width: 100%; font-weight: bold; }
-        .btn-danger { background: #ff4757; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; }
+        .btn-primary { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; }
+        .btn-danger { background: #ff4757; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .item-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; }
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #747d8c; font-size: 0.7rem; cursor: pointer; }
@@ -79,8 +76,10 @@
         </section>
 
         <section id="tab-manage" class="tab-content">
-            <h3>All Stock</h3><br>
-            <div id="div_manage_list" class="card"></div>
+            <div class="card">
+                <h3>All Stock</h3><br>
+                <div id="div_manage_list"></div>
+            </div>
         </section>
 
         <section id="tab-orders" class="tab-content">
@@ -148,12 +147,12 @@
         }
 
         async function updateBanner() {
-            await fetch(API + '/banner', {
+            const res = await fetch(API + '/banner', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token},
                 body: JSON.stringify({imageUrl: document.getElementById('inp_b_url').value, text: document.getElementById('inp_b_txt').value})
             });
-            alert("Banner Updated");
+            if(res.ok) alert("Banner Updated");
         }
 
         async function loadCats() {
@@ -161,32 +160,25 @@
             const data = await res.json();
             document.getElementById('sel_p_cat').innerHTML = data.map(function(c) { return '<option value="' + c.name + '">' + c.name + '</option>'; }).join('');
             document.getElementById('div_cat_list').innerHTML = data.map(function(c) { 
-                return '<div class="item-row"><span>' + c.name + '</span><button class="btn-danger" onclick="delCat(\'' + c._id + '\')">DEL</button></div>';
+                return '<div class="item-row"><span>' + c.name + '</span><button class="btn-danger" onclick="deleteAnything(\'categories\', \'' + c._id + '\')">DEL</button></div>';
             }).join('');
         }
 
         async function saveCategory() {
             const name = document.getElementById('inp_new_cat').value;
-            await fetch(API + '/categories', {
+            const res = await fetch(API + '/categories', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token},
                 body: JSON.stringify({name: name})
             });
-            document.getElementById('inp_new_cat').value = '';
-            loadCats();
-        }
-
-        async function delCat(id) {
-            if(!confirm("Delete Category?")) return;
-            await fetch(API + '/categories/' + id, { method: 'DELETE', headers: {'Authorization': 'Bearer ' + token} });
-            loadCats();
+            if(res.ok) { document.getElementById('inp_new_cat').value = ''; loadCats(); }
         }
 
         async function loadProds() {
             const res = await fetch(API + '/products');
             const data = await res.json();
             document.getElementById('div_manage_list').innerHTML = data.map(function(p) {
-                return '<div class="item-row"><div><b>' + p.name + '</b><div class="price-display"><span class="rs-icon">₹</span><span>' + p.price + '</span></div></div><button class="btn-danger" onclick="delProd(\'' + p._id + '\')">DELETE</button></div>';
+                return '<div class="item-row"><div><b>' + p.name + '</b><div class="price-display"><span class="rs-icon">₹</span><span>' + p.price + '</span></div></div><button class="btn-danger" onclick="deleteAnything(\'products\', \'' + p._id + '\')">DELETE</button></div>';
             }).join('');
         }
 
@@ -198,34 +190,38 @@
                 image: document.getElementById('inp_p_img').value,
                 description: document.getElementById('inp_p_desc').value
             };
-            await fetch(API + '/products', {
+            const res = await fetch(API + '/products', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token},
                 body: JSON.stringify(body)
             });
-            alert("Product Added");
-            refreshData();
+            if(res.ok) { alert("Product Saved"); refreshData(); }
         }
 
-        // SIMPLE DIRECT DELETE FOR PRODUCTS
-        async function delProd(id) {
-            if(!confirm("Delete Product?")) return;
-            const res = await fetch(API + '/products/' + id, { 
+        // --- NEW UNIFIED DELETE FUNCTION ---
+        async function deleteAnything(type, id) {
+            if(!confirm("Are you sure?")) return;
+            const res = await fetch(API + '/' + type + '/' + id, { 
                 method: 'DELETE', 
                 headers: { 'Authorization': 'Bearer ' + token } 
             });
-            if(res.ok) { refreshData(); } else { alert("Error deleting"); }
+            if(res.ok) { 
+                refreshData(); 
+            } else { 
+                const err = await res.json();
+                alert("Error: " + (err.error || "Could not delete")); 
+            }
         }
 
         async function loadOrders() {
             const res = await fetch(API + '/orders/all', { headers: {'Authorization': 'Bearer ' + token} });
             const data = await res.json();
             document.getElementById('div_order_list').innerHTML = data.map(function(o) {
-                return '<div class="card"><b>' + o.customerName + '</b><br><div class="price-display"><span class="rs-icon">₹</span><span>' + o.totalAmount + '</span></div><button class="btn-primary" style="margin-top:10px; padding:8px;" onclick="updOrder(\'' + o._id + '\', \'' + (o.status === 'Pending' ? 'Approved' : 'Paid') + '\')">' + (o.status === 'Pending' ? 'APPROVE' : 'MARK PAID') + '</button></div>';
+                return '<div class="card"><b>' + o.customerName + '</b><br><div class="price-display"><span class="rs-icon">₹</span><span>' + o.totalAmount + '</span></div><button class="btn-primary" style="margin-top:10px; padding:8px;" onclick="updateOrder(\'' + o._id + '\', \'' + (o.status === 'Pending' ? 'Approved' : 'Paid') + '\')">' + (o.status === 'Pending' ? 'APPROVE' : 'MARK PAID') + '</button></div>';
             }).join('');
         }
 
-        async function updOrder(id, s) {
+        async function updateOrder(id, s) {
             await fetch(API + '/orders/' + id + '/status', { method: 'PUT', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}, body: JSON.stringify({status: s})});
             loadOrders();
         }
